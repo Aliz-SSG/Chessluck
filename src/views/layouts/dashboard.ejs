@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<%- include ('partials/messages') -%>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dashboard</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            .chess-board {
+                background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="50" height="50" x="0" y="0" fill="%23374151"/><rect width="50" height="50" x="50" y="50" fill="%23374151"/><rect width="50" height="50" x="0" y="50" fill="%23212a3e"/><rect width="50" height="50" x="50" y="0" fill="%23212a3e"/></svg>');
+                background-size: 100px 100px;
+            }
+
+            .gradient-text {
+                background: linear-gradient(90deg, #6366f1, #8b5cf6);
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+            }
+
+            .pulse-animation {
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0% {
+                    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+                }
+
+                70% {
+                    box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+                }
+
+                100% {
+                    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+                }
+            }
+
+            .move-history::-webkit-scrollbar {
+                width: 5px;
+            }
+
+            .move-history::-webkit-scrollbar-track {
+                background: #1e293b;
+            }
+
+            .move-history::-webkit-scrollbar-thumb {
+                background: #4b5563;
+                border-radius: 10px;
+            }
+
+            .sticky-profile {
+                position: sticky;
+                top: 20px;
+                z-index: 10;
+            }
+
+            @media (max-width: 1023px) {
+                .sticky-profile {
+                    position: static;
+                }
+            }
+
+            /* Custom scrollbar */
+            .custom-scrollbar::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .custom-scrollbar::-webkit-scrollbar-track {
+                background: #1a202c;
+            }
+
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: #4a5568;
+                border-radius: 3px;
+            }
+
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: #718096;
+            }
+
+            /* Pulse animation for online status */
+            @keyframes pulse {
+                0% {
+                    opacity: 1;
+                }
+
+                50% {
+                    opacity: 0.5;
+                }
+
+                100% {
+                    opacity: 1;
+                }
+            }
+
+            .pulse {
+                animation: pulse 2s infinite;
+            }
+        </style>
+    </head>
+
+    <body class="bg-gray-900 text-gray-200 min-h-screen">
+        <nav class="bg-gray-800 border-b border-gray-700 py-4 px-6 sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-chess-queen text-blue-400 text-2xl"></i>
+                    <span
+                        class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent hover:text-blue-400 transition"><a
+                            href="http://localhost:5000/">ChessMaster</a></span>
+                </div>
+
+                <div class="hidden md:flex space-x-6">
+                    <a href="http://localhost:5000/" class="hover:text-blue-400 transition">Home</a>
+                    <a href="http://localhost:5000/play" class="hover:text-blue-400 transition">Play</a>
+                    <a href="http://localhost:5000/learn" class="hover:text-blue-400 transition">Puzzles</a>
+                    <a href="http://localhost:5000/learn" class="hover:text-blue-400 transition">Learn</a>
+                    <a href="http://localhost:5000/friends" class="hover:text-blue-400 transition">Friends</a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md transition"><a
+                            href="/changepassword">Change password</a></button>
+                    <button class="hidden md:block bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md transition"><a
+                            href="/logout">Logout</a></button>
+                    <button class="md:hidden text-xl">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Welcome back, John!</h2>
+                <div class="flex space-x-3">
+                    <button
+                        class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition">
+                        <i class="fas fa-plus"></i>
+                        <span>New Game</span>
+                    </button>
+                    <button
+                        class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg flex items-center space-x-2 transition">
+                        <i class="fas fa-search"></i>
+                        <span>Find Opponent</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="bg-gray-800 rounded-xl p-4 border-l-4 border-indigo-500">
+                    <div class="flex justify-between">
+                        <div>
+                            <p class="text-gray-400">Current Rating</p>
+                            <h3 class="text-2xl font-bold">1850</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-indigo-900/30 flex items-center justify-center">
+                            <i class="fas fa-chess-king text-indigo-400"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 flex items-center text-green-400 text-sm">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        <span>+32 this week</span>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl p-4 border-l-4 border-blue-500">
+                    <div class="flex justify-between">
+                        <div>
+                            <p class="text-gray-400">Games Played</p>
+                            <h3 class="text-2xl font-bold">247</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-blue-900/30 flex items-center justify-center">
+                            <i class="fas fa-chess-board text-blue-400"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 flex items-center text-gray-400 text-sm">
+                        <span>12 this week</span>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl p-4 border-l-4 border-purple-500">
+                    <div class="flex justify-between">
+                        <div>
+                            <p class="text-gray-400">Win Rate</p>
+                            <h3 class="text-2xl font-bold">68%</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-purple-900/30 flex items-center justify-center">
+                            <i class="fas fa-trophy text-purple-400"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 flex items-center text-green-400 text-sm">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        <span>+5% this month</span>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl p-4 border-l-4 border-green-500">
+                    <div class="flex justify-between">
+                        <div>
+                            <p class="text-gray-400">Current Streak</p>
+                            <h3 class="text-2xl font-bold">7</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-green-900/30 flex items-center justify-center">
+                            <i class="fas fa-fire text-green-400"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 flex items-center text-green-400 text-sm">
+                        <span>Keep it going!</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Current Game -->
+                <div class="lg:col-span-2 bg-gray-800 rounded-xl p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">Your Current Game</h3>
+                        <span class="text-sm bg-indigo-900/50 text-indigo-300 px-3 py-1 rounded-full">Turn: Your
+                            Move</span>
+                    </div>
+
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="chess-board w-full md:w-96 h-96 rounded-lg overflow-hidden relative">
+                            <!-- Chess pieces would be positioned here in a real implementation -->
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="text-center">
+                                    <i class="fas fa-chess-knight text-6xl text-white opacity-20"></i>
+                                    <p class="mt-2 text-gray-300">Game in progress</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex-1">
+                            <div class="bg-gray-700 rounded-lg p-4 mb-4">
+                                <div class="flex justify-between items-center mb-3">
+                                    <div class="flex items-center space-x-3">
+                                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Player"
+                                            class="w-10 h-10 rounded-full">
+                                        <div>
+                                            <p class="font-medium">You (White)</p>
+                                            <p class="text-xs text-gray-400">Rating: 1850</p>
+                                        </div>
+                                    </div>
+                                    <span class="bg-gray-600 px-2 py-1 rounded text-xs">+12</span>
+                                </div>
+
+                                <div class="flex items-center space-x-3">
+                                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Opponent"
+                                        class="w-10 h-10 rounded-full">
+                                    <div>
+                                        <p class="font-medium">Anna_Gambit (Black)</p>
+                                        <p class="text-xs text-gray-400">Rating: 1825</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-700 rounded-lg p-4 h-48 overflow-y-auto move-history">
+                                <h4 class="font-medium mb-3">Move History</h4>
+                                <div class="grid grid-cols-2 gap-2 text-sm">
+                                    <div class="bg-gray-800 p-2 rounded">1. e4</div>
+                                    <div class="bg-gray-800 p-2 rounded">e5</div>
+                                    <div class="bg-gray-800 p-2 rounded">2. Nf3</div>
+                                    <div class="bg-gray-800 p-2 rounded">Nc6</div>
+                                    <div class="bg-gray-800 p-2 rounded">3. Bb5</div>
+                                    <div class="bg-gray-800 p-2 rounded">a6</div>
+                                    <div class="bg-gray-800 p-2 rounded">4. Ba4</div>
+                                    <div class="bg-gray-800 p-2 rounded">Nf6</div>
+                                    <div class="bg-gray-800 p-2 rounded">5. O-O</div>
+                                    <div class="bg-gray-800 p-2 rounded">Be7</div>
+                                    <div class="bg-gray-800 p-2 rounded">6. Re1</div>
+                                    <div class="bg-gray-800 p-2 rounded">b5</div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 flex space-x-3">
+                                <button class="flex-1 bg-red-600 hover:bg-red-700 py-2 rounded-lg transition">
+                                    Resign
+                                </button>
+                                <button class="flex-1 bg-gray-600 hover:bg-gray-500 py-2 rounded-lg transition">
+                                    Offer Draw
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Sidebar -->
+                <div class="space-y-6">
+                    <!-- Recent Activity -->
+                    <div class="bg-gray-800 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start space-x-3">
+                                <div class="relative">
+                                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User"
+                                        class="w-10 h-10 rounded-full">
+                                    <div
+                                        class="absolute -bottom-1 -right-1 w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-chess-pawn text-xs text-white"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm">
+                                        <span class="font-medium">Anna_Gambit</span> challenged you to a rematch
+                                    </p>
+                                    <p class="text-xs text-gray-400 mt-1">15 minutes ago</p>
+                                    <div class="mt-2 flex space-x-2">
+                                        <button
+                                            class="text-xs bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded-full transition">
+                                            Accept
+                                        </button>
+                                        <button
+                                            class="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-full transition">
+                                            Decline
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-3">
+                                <div class="relative">
+                                    <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="User"
+                                        class="w-10 h-10 rounded-full">
+                                    <div
+                                        class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-trophy text-xs text-white"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm">
+                                        You defeated <span class="font-medium">ChessMaster2000</span> in a blitz game
+                                    </p>
+                                    <p class="text-xs text-gray-400 mt-1">2 hours ago</p>
+                                    <div class="mt-2">
+                                        <span class="text-xs bg-green-900/50 text-green-300 px-2 py-1 rounded-full">
+                                            Rating +15
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-3">
+                                <div class="relative">
+                                    <img src="https://randomuser.me/api/portraits/women/22.jpg" alt="User"
+                                        class="w-10 h-10 rounded-full">
+                                    <div
+                                        class="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-comment text-xs text-white"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm">
+                                        <span class="font-medium">QueenOfChess</span> commented on your game
+                                    </p>
+                                    <p class="text-xs text-gray-400 mt-1">5 hours ago</p>
+                                    <div class="mt-2">
+                                        <button
+                                            class="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded-full transition">
+                                            View Comment
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="w-full mt-4 text-sm text-indigo-400 hover:text-indigo-300 text-center">
+                            View All Activity
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                // In a real implementation, this would handle game state, moves, etc.
+                document.addEventListener('DOMContentLoaded', function () {
+                    // Example of interactive element
+                    const newGameBtn = document.querySelector('button:contains("New Game")');
+                    if (newGameBtn) {
+                        newGameBtn.addEventListener('click', function () {
+                            alert('Starting a new game! This would open a game creation modal in a real implementation.');
+                        });
+                    }
+
+                    // You would add more game-related JavaScript here
+                    console.log('Chess dashboard loaded');
+                });
+            </script>
+    </body>
+
+</html>

@@ -1,0 +1,304 @@
+<html lang="en">
+<%- include ('partials/messages')-%>
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>ChessMaster | Custom Online Chess Platform</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            html {
+                scroll-behavior: smooth;
+            }
+
+            @keyframes pulse {
+
+                0%,
+                100% {
+                    opacity: 1;
+                }
+
+                50% {
+                    opacity: 0.5;
+                }
+            }
+
+            .animate-pulse-slow {
+                animation: pulse 3s infinite;
+            }
+
+            .chess-board {
+                background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect x="0" y="0" width="50" height="50" fill="%23374151"/><rect x="50" y="50" width="50" height="50" fill="%23374151"/><rect x="0" y="50" width="50" height="50" fill="%23212a36"/><rect x="50" y="0" width="50" height="50" fill="%23212a36"/></svg>');
+                background-size: 100px 100px;
+            }
+
+            .piece-hover:hover {
+                transform: translateY(-5px);
+                filter: drop-shadow(0 5px 5px rgba(255, 255, 255, 0.2));
+            }
+
+            .glow-text {
+                text-shadow: 0 0 8px rgba(59, 130, 246, 0.7);
+            }
+        </style>
+    </head>
+
+    <body class="bg-gray-900 text-gray-100 font-sans min-h-screen flex flex-col scroll-smooth">
+        <!-- Navigation -->
+        <nav class="bg-gray-800 border-b border-gray-700 py-4 px-6 sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-chess-queen text-blue-400 text-2xl"></i>
+                    <span
+                        class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent hover:text-blue-400 transition">
+                        <a href="http://localhost:5000/">ChessMaster</a></span>
+                </div>
+
+                <div class="hidden md:flex space-x-6">
+                    <a href="http://localhost:5000/" class="hover:text-blue-400 transition">Home</a>
+                    <a href="http://localhost:5000/play" class="hover:text-blue-400 transition">Play</a>
+                    <a href="http://localhost:5000/learn" class="hover:text-blue-400 transition">Puzzles</a>
+                    <a href="http://localhost:5000/learn" class="hover:text-blue-400 transition">Learn</a>
+                    <a href="http://localhost:5000/friends" class="hover:text-blue-400 transition">Friends</a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md transition"><a
+                            href="http://localhost:5000/login">Sign up</a></button>
+                    <button class="hidden md:block bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md transition"><a
+                            href="http://localhost:5000/login">Log In</a></button>
+                    <button class="md:hidden text-xl">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Auth Forms Section -->
+        <section class="flex-grow flex items-center justify-center p-6">
+            <div class="w-full max-w-md bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+                <!-- Tabs -->
+                <div class="flex border-b border-gray-700">
+                    <button id="login-tab"
+                        class="flex-1 py-4 px-6 text-center font-medium text-blue-400 border-b-2 border-blue-400 hover:text-blue-400 transition">
+                        Login
+                    </button>
+                    <button id="signup-tab"
+                        class="flex-1 py-4 px-6 text-center font-medium text-gray-400 border-b-2 hover:text-blue-400 transition">
+                        SignUp
+                    </button>
+                </div>
+
+                <!-- Login Form -->
+                <div id="login-form" class="p-8">
+                    <form action="/login" method="POST">
+
+                        <div class="mb-6">
+                            <label for="login-username"
+                                class="block text-sm font-medium text-gray-300 mb-2">Username</label>
+                            <input type="text" id="login-username" name="username"
+                                class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white"
+                                placeholder="username" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="login-password"
+                                class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                            <input type="password" id="login-password" name="password"
+                                class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white"
+                                placeholder="••••••••" required>
+                        </div>
+                        <button type="submit"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200">
+                            LogIn
+                        </button>
+                    </form>
+                    <div class="mt-6 text-center text-sm text-gray-400">
+                        Forgot your password? <button id="recovery" class="text-blue-400 hover:underline"><a href="/recovery">Recover password</a></button>
+                    </div>
+                </div>
+
+                <!-- Signup Form (hidden by default) -->
+                <form action="/signup" method="POST">
+                    <div id="signup-form" class="p-8 hidden">
+
+                        <div class="mb-6">
+                            <label for="signup-username"
+                                class="block text-sm font-medium text-gray-300 mb-2">Username</label>
+                            <input type="text" id="signup-username" name="username"
+                                class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white"
+                                placeholder="username" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="signup-email" class="block text-sm font-medium text-gray-300 mb-2">Email
+                                Address</label>
+                            <input type="text" id="signup-email" name="email"
+                                class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white"
+                                placeholder="*****@*****.com" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="signup-password"
+                                class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                            <input type="password" id="signup-password" name="password"
+                                class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white"
+                                placeholder="••••••••" required>
+                        </div>
+                        <button type="submit"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200">
+                            Create Account
+                        </button>
+                </form>
+                <!-- <div class="mt-6 text-center text-sm text-gray-400">
+                    forgot your password? <button id="switch-to-login" class="text-blue-400 hover:underline">recover password</button>
+                </div>
+            </div>
+            </div> -->
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 border-t border-gray-700 py-12">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="grid md:grid-cols-4 gap-8">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-4">
+                            <i class="fas fa-chess-queen text-blue-400 text-2xl"></i>
+                            <span class="text-xl font-bold">ChessMaster</span>
+                        </div>
+                        <p class="text-gray-400">The ultimate platform for chess enthusiasts. Play, learn, and master
+                            the
+                            royal game.</p>
+                        <div class="flex space-x-4 mt-6">
+                            <a href="http://localhost:5000/about"
+                                class="text-gray-400 hover:text-blue-400 transition"><i
+                                    class="fab fa-twitter text-xl"></i></a>
+                            <a href="http://localhost:5000/about"
+                                class="text-gray-400 hover:text-blue-400 transition"><i
+                                    class="fab fa-facebook text-xl"></i></a>
+                            <a href="http://localhost:5000/about"
+                                class="text-gray-400 hover:text-blue-400 transition"><i
+                                    class="fab fa-instagram text-xl"></i></a>
+                            <a href="http://localhost:5000/about"
+                                class="text-gray-400 hover:text-blue-400 transition"><i
+                                    class="fab fa-youtube text-xl"></i></a>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Play</h3>
+                        <ul class="space-y-2">
+                            <li><a href="http://localhost:5000/play"
+                                    class="text-gray-400 hover:text-blue-400 transition">Live Chess</a></li>
+                            <li><a href="http://localhost:5000/learn"
+                                    class="text-gray-400 hover:text-blue-400 transition">Computer</a></li>
+                            <li><a href="http://localhost:5000/friends"
+                                    class="text-gray-400 hover:text-blue-400 transition">Friends</a></li>
+                            <li><a href="http://localhost:5000/learn"
+                                    class="text-gray-400 hover:text-blue-400 transition">Tournaments</a></li>
+                            <li><a href="http://localhost:5000/learn"
+                                    class="text-gray-400 hover:text-blue-400 transition">Variants</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Learn</h3>
+                        <ul class="space-y-2">
+                            <li><a href="http://localhost:5000/learn"
+                                    class="text-gray-400 hover:text-blue-400 transition">Lessons</a></li>
+                            <li><a href="http://localhost:5000/learn"
+                                    class="text-gray-400 hover:text-blue-400 transition">Puzzles</a></li>
+                            <li><a href="http://localhost:5000/learn"
+                                    class="text-gray-400 hover:text-blue-400 transition">Practice</a></li>
+                            <li><a href="http://localhost:5000/learn"
+                                    class="text-gray-400 hover:text-blue-400 transition">Analysis</a></li>
+                            <li><a href="http://localhost:5000/learn"
+                                    class="text-gray-400 hover:text-blue-400 transition">Opening Explorer</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Company</h3>
+                        <ul class="space-y-2">
+                            <li><a href="http://localhost:5000/about"
+                                    class="text-gray-400 hover:text-blue-400 transition">About</a></li>
+                            <li><a href="http://localhost:5000/about"
+                                    class="text-gray-400 hover:text-blue-400 transition">Careers</a></li>
+                            <li><a href="http://localhost:5000/about"
+                                    class="text-gray-400 hover:text-blue-400 transition">Blog</a></li>
+                            <li><a href="http://localhost:5000/about"
+                                    class="text-gray-400 hover:text-blue-400 transition">Help</a></li>
+                            <li><a href="http://localhost:5000/about"
+                                    class="text-gray-400 hover:text-blue-400 transition">Contact</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+                    <p class="text-gray-500 text-sm mb-4 md:mb-0">© 2023 ChessMaster. All rights reserved.</p>
+                    <div class="flex space-x-6">
+                        <a href="http://localhost:5000/about"
+                            class="text-gray-500 hover:text-blue-400 text-sm transition">Privacy Policy</a>
+                        <a href="http://localhost:5000/about"
+                            class="text-gray-500 hover:text-blue-400 text-sm transition">Terms of Service</a>
+                        <a href="http://localhost:5000/about"
+                            class="text-gray-500 hover:text-blue-400 text-sm transition">Cookies</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <script>
+            // Simple animation for chess pieces
+            document.addEventListener('DOMContentLoaded', function () {
+                const pieces = document.querySelectorAll('.piece-hover');
+
+                pieces.forEach(piece => {
+                    piece.addEventListener('mouseenter', function () {
+                        this.classList.add('animate-bounce');
+                    });
+
+                    piece.addEventListener('mouseleave', function () {
+                        this.classList.remove('animate-bounce');
+                    });
+                });
+
+                // Mobile menu toggle would go here
+                const mobileMenuButton = document.querySelector('.md\\:hidden.text-xl');
+                mobileMenuButton.addEventListener('click', function () {
+                    alert('Mobile menu would open here in a full implementation');
+                });
+
+                // Form tab switching
+                const loginTab = document.getElementById('login-tab');
+                const signupTab = document.getElementById('signup-tab');
+                const loginForm = document.getElementById('login-form');
+                const signupForm = document.getElementById('signup-form');
+                const switchToSignup = document.getElementById('switch-to-signup');
+                const switchToLogin = document.getElementById('switch-to-login');
+
+                function showLogin() {
+                    loginTab.classList.add('text-blue-400', 'border-blue-400');
+                    loginTab.classList.remove('text-gray-400');
+                    signupTab.classList.add('text-gray-400');
+                    signupTab.classList.remove('text-blue-400', 'border-blue-400');
+                    loginForm.classList.remove('hidden');
+                    signupForm.classList.add('hidden');
+                }
+
+                function showSignup() {
+                    signupTab.classList.add('text-blue-400', 'border-blue-400');
+                    signupTab.classList.remove('text-gray-400');
+                    loginTab.classList.add('text-gray-400');
+                    loginTab.classList.remove('text-blue-400', 'border-blue-400');
+                    signupForm.classList.remove('hidden');
+                    loginForm.classList.add('hidden');
+                }
+
+                loginTab.addEventListener('click', showLogin);
+                signupTab.addEventListener('click', showSignup);
+                switchToSignup.addEventListener('click', showSignup);
+                switchToLogin.addEventListener('click', showLogin);
+            });
+        </script>
+    </body>
+
+</html>

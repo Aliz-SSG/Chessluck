@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include ('partials/messages')-%>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChessMaster - Set New Password</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .password-strength {
+            transition: all 0.3s ease;
+        }
+
+        .input-focus-effect:focus {
+            box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center p-4 chess-bg">
+    <div class="w-full max-w-md bg-gray-800 rounded-xl shadow-2xl overflow-hidden border border-gray-700">
+        <!-- Header with chess icon -->
+        <div class="bg-gray-700 p-6 text-center">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fas fa-chess-knight text-3xl text-blue-400 mr-3"></i>
+                <h1 class="text-2xl font-bold text-blue-400">ChessMaster</h1>
+            </div>
+            <h2 class="text-xl font-semibold">Set Your New Password</h2>
+            <p class="text-gray-400 mt-1 text-sm">Secure your account with a strong password</p>
+        </div>
+
+        <!-- Password form -->
+        <form id="passwordForm" class="p-6 space-y-6" action="/changepassword" method="POST">
+            <!-- New Password -->
+            <div class="space-y-2">
+                <label for="newPassword" class="block text-sm font-medium text-gray-300">New Password</label>
+                <div class="relative">
+                    <input 
+                        name="password"
+                        type="password" 
+                        id="newPassword" 
+                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 input-focus-effect" 
+                        placeholder="Create new password"
+                        required
+                        minlength="8">
+                    <button type="button" class="absolute right-3 top-3 text-gray-400 hover:text-gray-200 toggle-password" data-target="newPassword">
+                        <i class="far fa-eye"></i>
+                    </button>
+                </div>
+                <div class="password-strength mt-2">
+                    <div class="flex justify-between text-xs text-gray-400">
+                        <span>Password Strength:</span>
+                        <span id="strengthText">Weak</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-1.5 mt-1">
+                        <div id="strengthBar" class="bg-red-500 h-1.5 rounded-full" style="width: 25%"></div>
+                    </div>
+                </div>
+                <ul class="text-xs text-gray-400 mt-2 space-y-1">
+                    <li class="flex items-center requirement" data-requirement="length">
+                        <i class="fas fa-circle text-xs mr-2 text-red-500"></i>
+                        <span>At least 8 characters</span>
+                    </li>
+                    <li class="flex items-center requirement" data-requirement="uppercase">
+                        <i class="fas fa-circle text-xs mr-2 text-red-500"></i>
+                        <span>At least 1 uppercase letter</span>
+                    </li>
+                    <li class="flex items-center requirement" data-requirement="number">
+                        <i class="fas fa-circle text-xs mr-2 text-red-500"></i>
+                        <span>At least 1 number</span>
+                    </li>
+                    <li class="flex items-center requirement" data-requirement="special">
+                        <i class="fas fa-circle text-xs mr-2 text-red-500"></i>
+                        <span>At least 1 special character</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="space-y-2">
+                <label for="confirmPassword" class="block text-sm font-medium text-gray-300">Confirm New Password</label>
+                <div class="relative">
+                    <input 
+                        type="password" 
+                        id="confirmPassword" 
+                        class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 input-focus-effect" 
+                        placeholder="Confirm new password"
+                        required>
+                    <button type="button" class="absolute right-3 top-3 text-gray-400 hover:text-gray-200 toggle-password" data-target="confirmPassword">
+                        <i class="far fa-eye"></i>
+                    </button>
+                </div>
+                <p id="passwordMatch" class="text-xs mt-1 hidden"></p>
+            </div>
+
+            <!-- Submit Button -->
+            <button 
+                type="submit" 
+                id="submitBtn"
+                class="w-full bg-blue-400 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                Update Password
+            </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 bg-gray-700 text-center">
+            <p class="text-xs text-gray-400">Remember to use a unique password for ChessMaster. <a href="#" class="text-blue-400 hover:underline">Learn more</a></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Password toggle visibility
+            const toggleButtons = document.querySelectorAll('.toggle-password');
+            toggleButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    const icon = this.querySelector('i');
+                    
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.replace('fa-eye', 'fa-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.replace('fa-eye-slash', 'fa-eye');
+                    }
+                });
+            });
+
+            // Password strength checker
+            const newPasswordInput = document.getElementById('newPassword');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const strengthBar = document.getElementById('strengthBar');
+            const strengthText = document.getElementById('strengthText');
+            const passwordMatch = document.getElementById('passwordMatch');
+            const submitBtn = document.getElementById('submitBtn');
+            const requirementItems = document.querySelectorAll('.requirement');
+
+            newPasswordInput.addEventListener('input', checkPasswordStrength);
+            confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+
+            function checkPasswordStrength() {
+                const password = newPasswordInput.value;
+                let strength = 0;
+                
+                // Check password requirements
+                const hasLength = password.length >= 8;
+                const hasUppercase = /[A-Z]/.test(password);
+                const hasNumber = /[0-9]/.test(password);
+                const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+                
+                // Update requirement indicators
+                updateRequirement('length', hasLength);
+                updateRequirement('uppercase', hasUppercase);
+                updateRequirement('number', hasNumber);
+                updateRequirement('special', hasSpecial);
+                
+                // Calculate strength
+                if (hasLength) strength += 25;
+                if (hasUppercase) strength += 25;
+                if (hasNumber) strength += 25;
+                if (hasSpecial) strength += 25;
+                
+                // Update strength bar and text
+                strengthBar.style.width = strength + '%';
+                
+                if (strength < 50) {
+                    strengthBar.className = 'bg-red-500 h-1.5 rounded-full';
+                    strengthText.textContent = 'Weak';
+                } else if (strength < 75) {
+                    strengthBar.className = 'bg-yellow-500 h-1.5 rounded-full';
+                    strengthText.textContent = 'Moderate';
+                } else {
+                    strengthBar.className = 'bg-green-500 h-1.5 rounded-full';
+                    strengthText.textContent = 'Strong';
+                }
+                
+                // Enable/disable submit button based on password validity
+                checkFormValidity();
+            }
+            
+            function updateRequirement(type, isValid) {
+                const item = document.querySelector(`.requirement[data-requirement="${type}"]`);
+                const icon = item.querySelector('i');
+                
+                if (isValid) {
+                    icon.className = 'fas fa-check-circle text-xs mr-2 text-blue-500';
+                } else {
+                    icon.className = 'fas fa-circle text-xs mr-2 text-red-500';
+                }
+            }
+            
+            function checkPasswordMatch() {
+                const password = newPasswordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+                
+                if (confirmPassword === '') {
+                    passwordMatch.classList.add('hidden');
+                    passwordMatch.textContent = '';
+                } else if (password === confirmPassword) {
+                    passwordMatch.classList.remove('hidden');
+                    passwordMatch.textContent = 'Passwords match!';
+                    passwordMatch.className = 'text-xs mt-1 text-blue-500';
+                } else {
+                    passwordMatch.classList.remove('hidden');
+                    passwordMatch.textContent = 'Passwords do not match';
+                    passwordMatch.className = 'text-xs mt-1 text-red-500';
+                }
+                
+                checkFormValidity();
+            }
+            
+            function checkFormValidity() {
+                const password = newPasswordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+                const currentPassword = document.getElementById('currentPassword').value;
+                
+                // Check if all requirements are met
+                const hasLength = password.length >= 8;
+                const hasUppercase = /[A-Z]/.test(password);
+                const hasNumber = /[0-9]/.test(password);
+                const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+                const passwordsMatch = password === confirmPassword && password !== '';
+                
+                const isValid = currentPassword !== '' && hasLength && hasUppercase && hasNumber && hasSpecial && passwordsMatch;
+                
+                submitBtn.disabled = !isValid;
+            }
+            
+            // Form submission
+        //     const passwordForm = document.getElementById('passwordForm');
+        //     passwordForm.addEventListener('submit', function(e) {
+        //         e.preventDefault();
+                
+        //         // Simulate form submission
+        //         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Updating...';
+        //         submitBtn.disabled = true;
+                
+        //         setTimeout(() => {
+        //             // Show success message (in a real app, you would handle the actual password change)
+        //             alert('Password updated successfully!');
+        //             submitBtn.innerHTML = 'Update Password';
+        //             passwordForm.reset();
+        //             strengthBar.style.width = '25%';
+        //             strengthBar.className = 'bg-red-500 h-1.5 rounded-full';
+        //             strengthText.textContent = 'Weak';
+        //             passwordMatch.classList.add('hidden');
+                    
+        //             // Reset requirement indicators
+        //             requirementItems.forEach(item => {
+        //                 const icon = item.querySelector('i');
+        //                 icon.className = 'fas fa-circle text-xs mr-2 text-red-500';
+        //             });
+        //         }, 1500);
+        //     });
+        });
+    </script>
+</body>
+</html>

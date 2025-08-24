@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Password Recovery | Secure Access</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    .input-field:focus {
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+    }
+    .success-message {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen flex items-center justify-center p-4">
+
+  <!-- ✅ Centered Column Container -->
+  <div class="w-full max-w-md space-y-4">
+
+    <!-- ✅ Alert Message -->
+    <%- include('partials/messages') %>
+
+    <!-- ✅ Recovery Card -->
+    <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden transition-all duration-300">
+      <div class="p-8">
+        <div class="flex justify-center mb-6">
+          <div class="bg-blue-600 p-3 rounded-full">
+            <i class="fas fa-lock text-white text-2xl"></i>
+          </div>
+        </div>
+
+        <h1 class="text-2xl font-bold text-center text-white mb-2">Reset Your Password</h1>
+        <p class="text-gray-400 text-center mb-8">Enter your email to receive a password reset link</p>
+
+        <form action="/recovery" method="POST" class="space-y-6 bg-gray-800 p-6 rounded-xl shadow-md">
+          <div>
+            <label for="email" class="block text-gray-300 text-sm font-medium mb-2">Email Address</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-envelope text-gray-500"></i>
+              </div>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                class="input-field w-full pl-10 pr-3 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-indigo-500"
+                placeholder="your@email.com"
+              />
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              class="w-full bg-blue-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition duration-300 flex items-center justify-center"
+            >
+              <span>Send Reset Link</span>
+              <i class="fas fa-spinner fa-spin ml-2 hidden"></i>
+            </button>
+          </div>
+        </form>
+
+        <div class="mt-4 text-center">
+          <a href="/login" class="text-blue-600 hover:text-indigo-300 text-sm font-medium transition">Remember your password? Sign in</a>
+        </div>
+      </div>
+
+      <div class="bg-gray-900/50 px-8 py-4">
+        <p class="text-gray-500 text-xs text-center">
+          <i class="fas fa-shield-alt mr-1"></i> Your information is secured with 256-bit encryption
+        </p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

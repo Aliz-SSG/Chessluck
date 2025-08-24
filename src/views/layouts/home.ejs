@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChessMaster | Custom Online Chess Platform</title>
+    <!-- <link rel="icon" href="" /> -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .animate-pulse-slow {
+            animation: pulse 3s infinite;
+        }
+
+        .chess-board {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect x="0" y="0" width="50" height="50" fill="%23374151"/><rect x="50" y="50" width="50" height="50" fill="%23374151"/><rect x="0" y="50" width="50" height="50" fill="%23212a36"/><rect x="50" y="0" width="50" height="50" fill="%23212a36"/></svg>');
+            background-size: 100px 100px;
+        }
+
+        .piece-hover:hover {
+            transform: translateY(-5px);
+            filter: drop-shadow(0 5px 5px rgba(255, 255, 255, 0.2));
+        }
+
+        .glow-text {
+            text-shadow: 0 0 8px rgba(59, 130, 246, 0.7);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col scroll-smooth">
+    <!-- Navigation -->
+    <nav class="bg-gray-800 border-b border-gray-700 py-4 px-6 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-chess-queen text-blue-400 text-2xl"></i>
+                <span
+                    class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent hover:text-blue-400 transition">
+                    <a href="http://localhost:5000/">ChessMaster</a></span>
+            </div>
+
+            <div class="hidden md:flex space-x-6">
+                <a href="http://localhost:5000/" class="hover:text-blue-400 transition">Home</a>
+                <a href="http://localhost:5000/play" class="hover:text-blue-400 transition">Play</a>
+                <a href="http://localhost:5000/learn" class="hover:text-blue-400 transition">Puzzles</a>
+                <a href="http://localhost:5000/learn" class="hover:text-blue-400 transition">Learn</a>
+                <a href="http://localhost:5000/friends" class="hover:text-blue-400 transition">Friends</a>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md transition"><a
+                        href="http://localhost:5000/login">Sign Up</a></button>
+                <button class="hidden md:block bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md transition"><a
+                        href="http://localhost:5000/login">Log In</a></button>
+                <button class="md:hidden text-xl">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="flex-grow">
+        <div class="max-w-7xl mx-auto px-6 py-16 md:py-24 flex flex-col md:flex-row items-center">
+            <div class="md:w-1/2 mb-12 md:mb-0">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                    <span class="glow-text">Master</span> the Game of <span class="text-blue-400">Kings</span>
+                </h1>
+                <p class="text-gray-400 text-lg mb-8 max-w-lg">
+                    Play, learn, and compete on the most customizable chess platform. Challenge players worldwide or
+                    hone your skills with our advanced training tools.
+                </p>
+                <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                    <button
+                        class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-md font-medium transition transform hover:scale-105">
+                        <a href="http://localhost:5000/play">Play online</a> <i class="fas fa-chess-knight ml-2"></i>
+                    </button>
+                    <button
+                        class="bg-gray-800 hover:bg-gray-700 px-6 py-3 rounded-md font-medium transition transform hover:scale-105">
+                        <a href="http://localhost:5000/learn">Learn Chess</a> <i class="fas fa-graduation-cap ml-2"></i>
+                    </button>
+                </div>
+                <div class="mt-8 flex items-center space-x-4">
+                    <div class="flex -space-x-2">
+                        <img src="https://randomuser.me/api/portraits/women/44.jpg"
+                            class="w-10 h-10 rounded-full border-2 border-gray-800" alt="Player">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg"
+                            class="w-10 h-10 rounded-full border-2 border-gray-800" alt="Player">
+                        <img src="https://randomuser.me/api/portraits/women/68.jpg"
+                            class="w-10 h-10 rounded-full border-2 border-gray-800" alt="Player">
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-400">Join <span class="text-blue-400 font-medium">10,000+</span>
+                            players online now</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="md:w-1/2 relative">
+                <div
+                    class="chess-board rounded-xl overflow-hidden shadow-2xl border-4 border-gray-700 w-full max-w-md mx-auto">
+                    <div class="relative aspect-square">
+                        <!-- Chess pieces would be positioned here -->
+                        <div
+                            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+                            <div class="flex space-x-4 mb-4">
+                                <i class="fas fa-chess-king text-white text-3xl piece-hover transition"></i>
+                                <i class="fas fa-chess-queen text-white text-3xl piece-hover transition"></i>
+                                <i class="fas fa-chess-rook text-white text-3xl piece-hover transition"></i>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-gray-300 mb-2">Live game in progress</p>
+                                <div class="flex justify-center space-x-2">
+                                    <span class="w-3 h-3 rounded-full bg-green-500 animate-pulse-slow"></span>
+                                    <span class="text-sm text-gray-400">GM Carlsen vs GM Nakamura</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute -bottom-6 -right-6 bg-gray-800 p-4 rounded-lg shadow-lg hidden md:block">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-trophy text-yellow-400"></i>
+                        <span class="font-medium">Tournament Live</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="bg-gray-800 py-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center mb-12">Why Choose <span class="text-blue-400">ChessMaster</span>
+            </h2>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-gray-700 p-6 rounded-xl hover:bg-gray-600 transition">
+                    <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-cogs text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Fully Customizable</h3>
+                    <p class="text-gray-400">Personalize your chess experience with custom boards, pieces, and themes to
+                        match your style.</p>
+                </div>
+
+                <div class="bg-gray-700 p-6 rounded-xl hover:bg-gray-600 transition">
+                    <div class="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-robot text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">AI Opponents</h3>
+                    <p class="text-gray-400">Train against our advanced chess AI with adjustable difficulty levels from
+                        beginner to grandmaster.</p>
+                </div>
+
+                <div class="bg-gray-700 p-6 rounded-xl hover:bg-gray-600 transition">
+                    <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-users text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Vibrant Community</h3>
+                    <p class="text-gray-400">Join tournaments, create clubs, and connect with chess enthusiasts from
+                        around the world.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Game Modes Section -->
+    <section class="py-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center mb-12">Explore <span class="text-blue-400">Game Modes</span></h2>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div
+                    class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 hover:border-blue-400 transition group">
+                    <div class="h-40 bg-gradient-to-br from-blue-900 to-blue-600 flex items-center justify-center">
+                        <i class="fas fa-bolt text-5xl text-white opacity-80 group-hover:opacity-100 transition"></i>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">Blitz</h3>
+                        <p class="text-gray-400">Fast-paced games (3-5 minutes) for quick thinking and rapid decisions.
+                        </p>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 hover:border-purple-400 transition group">
+                    <div class="h-40 bg-gradient-to-br from-purple-900 to-purple-600 flex items-center justify-center">
+                        <i class="fas fa-clock text-5xl text-white opacity-80 group-hover:opacity-100 transition"></i>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">Classical</h3>
+                        <p class="text-gray-400">Traditional time controls (30+ minutes) for deep strategic play.</p>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 hover:border-green-400 transition group">
+                    <div class="h-40 bg-gradient-to-br from-green-900 to-green-600 flex items-center justify-center">
+                        <i
+                            class="fas fa-puzzle-piece text-5xl text-white opacity-80 group-hover:opacity-100 transition"></i>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">Puzzles</h3>
+                        <p class="text-gray-400">Solve tactical puzzles to sharpen your skills and pattern recognition.
+                        </p>
+                    </div>
+                </div>
+
+                <div
+                    class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700 hover:border-yellow-400 transition group">
+                    <div class="h-40 bg-gradient-to-br from-yellow-900 to-yellow-600 flex items-center justify-center">
+                        <i class="fas fa-random text-5xl text-white opacity-80 group-hover:opacity-100 transition"></i>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">Variants</h3>
+                        <p class="text-gray-400">Try Chess960, King of the Hill, and other exciting rule variations.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="bg-gradient-to-r from-blue-900 to-purple-900 py-16">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">Ready to <span class="text-yellow-300">Elevate</span> Your
+                Chess Game?</h2>
+            <p class="text-xl text-blue-200 mb-8">Join thousands of players improving their skills and having fun every
+                day.</p>
+            <button
+                class="bg-white text-gray-900 hover:bg-gray-200 px-8 py-4 rounded-md font-bold text-lg transition transform hover:scale-105 shadow-lg">
+                <a href="http://localhost:5000/login">Create Free Account</a> <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 border-t border-gray-700 py-12">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fas fa-chess-queen text-blue-400 text-2xl"></i>
+                        <span class="text-xl font-bold">ChessMaster</span>
+                    </div>
+                    <p class="text-gray-400">The ultimate platform for chess enthusiasts. Play, learn, and master the
+                        royal game.</p>
+                    <div class="flex space-x-4 mt-6">
+                        <a href="http://localhost:5000/about" class="text-gray-400 hover:text-blue-400 transition"><i
+                                class="fab fa-twitter text-xl"></i></a>
+                        <a href="http://localhost:5000/about" class="text-gray-400 hover:text-blue-400 transition"><i
+                                class="fab fa-facebook text-xl"></i></a>
+                        <a href="http://localhost:5000/about" class="text-gray-400 hover:text-blue-400 transition"><i
+                                class="fab fa-instagram text-xl"></i></a>
+                        <a href="http://localhost:5000/about" class="text-gray-400 hover:text-blue-400 transition"><i
+                                class="fab fa-youtube text-xl"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Play</h3>
+                    <ul class="space-y-2">
+                        <li><a href="http://localhost:5000/play"
+                                class="text-gray-400 hover:text-blue-400 transition">Live Chess</a></li>
+                        <li><a href="http://localhost:5000/learn"
+                                class="text-gray-400 hover:text-blue-400 transition">Computer</a></li>
+                        <li><a href="http://localhost:5000/friends"
+                                class="text-gray-400 hover:text-blue-400 transition">Friends</a></li>
+                        <li><a href="http://localhost:5000/learn"
+                                class="text-gray-400 hover:text-blue-400 transition">Tournaments</a></li>
+                        <li><a href="http://localhost:5000/learn"
+                                class="text-gray-400 hover:text-blue-400 transition">Variants</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Learn</h3>
+                    <ul class="space-y-2">
+                        <li><a href="http://localhost:5000/learn"
+                                class="text-gray-400 hover:text-blue-400 transition">Lessons</a></li>
+                        <li><a href="http://localhost:5000/learn"
+                                class="text-gray-400 hover:text-blue-400 transition">Puzzles</a></li>
+                        <li><a href="http://localhost:5000/learn"
+                                class="text-gray-400 hover:text-blue-400 transition">Practice</a></li>
+                        <li><a href="http://localhost:5000/learn"
+                                class="text-gray-400 hover:text-blue-400 transition">Analysis</a></li>
+                        <li><a href="http://localhost:5000/learn"
+                                class="text-gray-400 hover:text-blue-400 transition">Opening Explorer</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Company</h3>
+                    <ul class="space-y-2">
+                        <li><a href="http://localhost:5000/about"
+                                class="text-gray-400 hover:text-blue-400 transition">About</a></li>
+                        <li><a href="http://localhost:5000/about"
+                                class="text-gray-400 hover:text-blue-400 transition">Careers</a></li>
+                        <li><a href="http://localhost:5000/about"
+                                class="text-gray-400 hover:text-blue-400 transition">Blog</a></li>
+                        <li><a href="http://localhost:5000/about"
+                                class="text-gray-400 hover:text-blue-400 transition">Help</a></li>
+                        <li><a href="http://localhost:5000/about"
+                                class="text-gray-400 hover:text-blue-400 transition">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-500 text-sm mb-4 md:mb-0">© 2023 ChessMaster. All rights reserved.</p>
+                <div class="flex space-x-6">
+                    <a href="http://localhost:5000/about"
+                        class="text-gray-500 hover:text-blue-400 text-sm transition">Privacy Policy</a>
+                    <a href="http://localhost:5000/about"
+                        class="text-gray-500 hover:text-blue-400 text-sm transition">Terms of Service</a>
+                    <a href="http://localhost:5000/about"
+                        class="text-gray-500 hover:text-blue-400 text-sm transition">Cookies</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Simple animation for chess pieces
+        document.addEventListener('DOMContentLoaded', function () {
+            const pieces = document.querySelectorAll('.piece-hover');
+
+            pieces.forEach(piece => {
+                piece.addEventListener('mouseenter', function () {
+                    this.classList.add('animate-bounce');
+                });
+
+                piece.addEventListener('mouseleave', function () {
+                    this.classList.remove('animate-bounce');
+                });
+            });
+
+            // Mobile menu toggle would go here
+            const mobileMenuButton = document.querySelector('.md\\:hidden.text-xl');
+            mobileMenuButton.addEventListener('click', function () {
+                alert('Mobile menu would open here in a full implementation');
+            });
+        });
+    </script>
+</body>
+
+</html>
