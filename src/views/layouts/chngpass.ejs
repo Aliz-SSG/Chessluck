@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <%- include ('partials/messages')-%>
+    <%- include ('../partials/messages.ejs')-%>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChessMaster - Set New Password</title>
@@ -30,7 +30,7 @@
         </div>
 
         <!-- Password form -->
-        <form id="passwordForm" class="p-6 space-y-6" action="/changepassword" method="POST">
+        <form id="passwordForm" class="p-6 space-y-6" action="/auth/changepassword" method="POST">
             <!-- New Password -->
             <div class="space-y-2">
                 <label for="newPassword" class="block text-sm font-medium text-gray-300">New Password</label>

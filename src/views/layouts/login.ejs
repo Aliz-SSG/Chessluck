@@ -1,5 +1,5 @@
 <html lang="en">
-<%- include ('partials/messages')-%>
+<%- include ('../partials/messages.ejs')-%>
 
     <head>
         <meta charset="UTF-8">
@@ -92,7 +92,7 @@
 
                 <!-- Login Form -->
                 <div id="login-form" class="p-8">
-                    <form action="/login" method="POST">
+                    <form action="/auth/login" method="POST">
 
                         <div class="mb-6">
                             <label for="login-username"
@@ -119,7 +119,7 @@
                 </div>
 
                 <!-- Signup Form (hidden by default) -->
-                <form action="/signup" method="POST">
+                <form action="/auth/signup" method="POST">
                     <div id="signup-form" class="p-8 hidden">
 
                         <div class="mb-6">
