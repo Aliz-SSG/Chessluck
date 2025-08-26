@@ -12,14 +12,14 @@ exports.showResetForm = (req, res) => {
     User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } })
         .then(user => {
             if (!user) {
-                req.flash('err_msg', 'this link has expired');
-                return res.redirect('/recovery');
+                req.flash('err_msg', 'this link has been expired');
+                return res.redirect('/auth/recovery');
             }
             res.render('newpass', { token: req.params.token });
         })
         .catch(err => {
             req.flash('err_msg', 'Error: ' + err);
-            res.redirect('/recovery');
+            res.redirect('/auth/recovery');
         });
 };
 exports.showChangePasswordForm = (req, res) => res.render('chngpass');
@@ -30,12 +30,12 @@ exports.registerUser = (req, res) => {
     User.register(userData, password, (err, user) => {
         if (err) {
             req.flash('err_msg', 'Error:' + err);
-            return res.redirect('/login');
+            return res.redirect('/auth/login');
         }
         req.login(user, err => {
             if (err) return next(err);
-            req.flash('success_msg', 'اکانت با موفقیت ساخته شد');
-            res.redirect('/dashboard');
+            req.flash('success_msg', 'account created successfully');
+            res.redirect('/auth/dashboard');
         });
     });
 };
@@ -43,8 +43,8 @@ exports.registerUser = (req, res) => {
 exports.logoutUser = (req, res, next) => {
     req.logout(err => {
         if (err) return next(err);
-        req.flash('success_msg', 'با موفقیت خارج شدید');
-        res.redirect('/login');
+        req.flash('success_msg', 'loged out successfully');
+        res.redirect('/auth/login');
     });
 };
 
@@ -61,8 +61,8 @@ exports.sendRecoveryEmail = (req, res) => {
             User.findOne({ email: req.body.email })
                 .then(user => {
                     if (!user) {
-                        req.flash('err_msg', 'کاربری با این ایمیل یافت نشد');
-                        return res.redirect('/recovery');
+                        req.flash('err_msg', 'No user found with submitted information');
+                        return res.redirect('/auth/recovery');
                     }
                     user.resetPasswordToken = token;
                     user.resetPasswordExpires = Date.now() + 18000000;
@@ -70,26 +70,26 @@ exports.sendRecoveryEmail = (req, res) => {
                 })
                 .catch(err => {
                     req.flash('err_msg', 'Error: ' + err);
-                    res.redirect('/recovery');
+                    res.redirect('/auth/recovery');
                 });
         },
         (token, user, done) => {
             recoverypassword(token, user, req.headers.host)
                 .then(() => {
-                    req.flash('success_msg', 'ایمیل بازیابی ارسال شد');
-                    res.redirect('/recovery');
+                    req.flash('success_msg', 'recovery email sent');
+                    res.redirect('/auth/recovery');
                     done(null);
                 })
                 .catch(err => {
-                    req.flash('err_msg', 'ارسال ایمیل ناموفق بود');
-                    res.redirect('/recovery');
+                    req.flash('err_msg', 'sendig recovery email failed');
+                    res.redirect('/auth/recovery');
                     done(err);
                 });
         }
     ], err => {
         if (err) {
-            req.flash('err_msg', 'خطایی در فرآیند بازیابی رخ داد');
-            res.redirect('/recovery');
+            req.flash('err_msg', 'Erorr:' + err);
+            res.redirect('/auth/recovery');
         }
     });
 };
@@ -103,12 +103,12 @@ exports.resetPassword = (req, res) => {
             })
                 .then(user => {
                     if (!user) {
-                        req.flash('err_msg', 'توکن نامعتبر یا منقضی شده');
-                        return res.redirect('/recovery');
+                        req.flash('err_msg', 'Token expired');
+                        return res.redirect('/auth/recovery');
                     }
                     if (req.body.password !== req.body.conformpassword) {
-                        req.flash('err_msg', 'رمزها مطابقت ندارند');
-                        return res.redirect('/recovery');
+                        req.flash('err_msg', 'passwords dont match');
+                        return res.redirect('/auth/recovery');
                     }
                     user.setPassword(req.body.password, err => {
                         if (err) return done(err);
@@ -119,26 +119,26 @@ exports.resetPassword = (req, res) => {
                 })
                 .catch(err => {
                     req.flash('err_msg', 'Error: ' + err);
-                    res.redirect('/recovery');
+                    res.redirect('/auth/recovery');
                 });
         },
         (user, done) => {
             passwordchanged(user)
                 .then(() => {
-                    req.flash('success_msg', 'رمز عبور با موفقیت تغییر کرد');
-                    res.redirect('/login');
+                    req.flash('success_msg', 'password changed successfully');
+                    res.redirect('/auth/login');
                     done(null);
                 })
                 .catch(err => {
-                    req.flash('err_msg', 'رمز تغییر کرد ولی ایمیل ارسال نشد');
-                    res.redirect('/login');
+                    req.flash('err_msg', '');
+                    res.redirect('/auth/login');
                     done(err);
                 });
         }
     ], err => {
         if (err) {
-            req.flash('err_msg', 'خطایی در تغییر رمز رخ داد');
-            res.redirect('/recovery');
+            req.flash('err_msg', 'Error:' + err);
+            res.redirect('/auth/recovery');
         }
     });
 };
@@ -149,21 +149,21 @@ exports.changePassword = (req, res) => {
             user.setPassword(req.body.newPassword, err => {
                 if (err) {
                     req.flash('err_msg', 'Error: ' + err);
-                    return res.redirect('/changepassword');
+                    return res.redirect('/auth/changepassword');
                 }
                 user.save()
                     .then(() => {
-                        req.flash('success_msg', 'رمز عبور با موفقیت تغییر کرد');
-                        res.redirect('/dashboard');
+                        req.flash('success_msg', 'password changed successfully');
+                        res.redirect('/auth/dashboard');
                     })
                     .catch(err => {
                         req.flash('err_msg', 'Error: ' + err);
-                        res.redirect('/changepassword');
+                        res.redirect('/auth/changepassword');
                     });
             });
         })
         .catch(err => {
             req.flash('err_msg', 'Error: ' + err);
-            res.redirect('/changepassword');
+            res.redirect('/auth/changepassword');
         });
 };

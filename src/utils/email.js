@@ -73,7 +73,7 @@ function recoverypassword(token, User, host) {
                     <p>Hello,</p>
                     <p>We received a request to reset your password. Click the button below to proceed:</p>
                     <p>
-                        <a href="http://${host}/reset/${token}" class="button">Reset Password</a>
+                        <a href="http://${host}/auth/reset/${token}" class="button">Reset Password</a>
                     </p>
                     <p>If you didn’t request this, please ignore this email—your account is secure.</p>
                     <p>Thanks,<br>ChessLuck Team</p>

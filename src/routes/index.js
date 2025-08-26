@@ -3,7 +3,10 @@ const router = express.Router()
 
 router.use('/auth', require('./authRoutes.js'))
 router.use('/game', require('./gameRoutes.js'))
-router.use('/friends', require('./friendsRoutes.js'))
+// router.use('/friends', require('/friends'))
+router.get("/friends", (req, res) => {
+    res.render("friends");
+});
 router.get("/", (req, res) => {
     res.render("home");
 });
