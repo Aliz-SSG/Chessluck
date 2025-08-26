@@ -3,6 +3,6 @@ function isAuthenticatedUser(req, res, next) {
         return next()
     }
     req.flash('err_msg', 'plz login first')
-    return res.redirect('/login')
+    return res.redirect('/auth/login')
 }
 module.exports = isAuthenticatedUser

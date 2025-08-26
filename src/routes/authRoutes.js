@@ -12,9 +12,9 @@ router.get('/reset/:token', authController.showResetForm);
 router.get('/changepassword', isAuthenticatedUser, authController.showChangePasswordForm);
 
 router.post('/login', passport.authenticate('local', {
-    successRedirect: '/dashboard',
+    successRedirect: '/auth/dashboard',
     successFlash: 'welcome',
-    failureRedirect: '/login',
+    failureRedirect: '/auth/login',
     failureFlash: 'invalid email or password, try again'
 }));
 router.post('/signup', authController.registerUser);

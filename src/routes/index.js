@@ -1,10 +1,11 @@
 const express = require('express')
 const router = express.Router()
+const isAuthenticatedUser = require('../middlewares/authMiddleware.js');
 
 router.use('/auth', require('./authRoutes.js'))
 router.use('/game', require('./gameRoutes.js'))
-// router.use('/friends', require('/friends'))
-router.get("/friends", (req, res) => {
+
+router.get("/friends", isAuthenticatedUser, (req, res) => {
     res.render("friends");
 });
 router.get("/", (req, res) => {
