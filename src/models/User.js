@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema({
     },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }]
 
 
 });

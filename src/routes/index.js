@@ -4,10 +4,8 @@ const isAuthenticatedUser = require('../middlewares/authMiddleware.js');
 
 router.use('/auth', require('./authRoutes.js'))
 router.use('/game', require('./gameRoutes.js'))
+router.use('/friends', require('./friendsRoutes'))
 
-router.get("/friends", isAuthenticatedUser, (req, res) => {
-    res.render("friends");
-});
 router.get("/", (req, res) => {
     res.render("home");
 });
