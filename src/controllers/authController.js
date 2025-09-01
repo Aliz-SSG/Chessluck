@@ -25,19 +25,26 @@ exports.showResetForm = (req, res) => {
 exports.showChangePasswordForm = (req, res) => res.render('chngpass');
 
 exports.registerUser = (req, res) => {
-    const { username, email, password } = req.body;
-    const userData = { username, email };
-    User.register(userData, password, (err, user) => {
-        if (err) {
-            req.flash('err_msg', 'Error:' + err);
-            return res.redirect('/auth/login');
-        }
-        req.login(user, err => {
-            if (err) return next(err);
-            req.flash('success_msg', 'account created successfully');
-            res.redirect('/auth/dashboard');
+    try {
+        const { username, email, password } = req.body;
+        const userData = { username, email };
+        User.register(userData, password, (err, user) => {
+            if (err) {
+                req.flash('err_msg', 'Error:' + err);
+                return res.redirect('/auth/login');
+            }
+            req.login(user, err => {
+                if (err) return next(err);
+                req.flash('success_msg', 'account created successfully');
+                res.redirect('/auth/dashboard');
+            });
         });
-    });
+    }
+    catch (err) {
+        req.flash('err_msg', 'Error:' + err);
+        return res.redirect('/auth/login');
+
+    }
 };
 
 exports.logoutUser = (req, res, next) => {

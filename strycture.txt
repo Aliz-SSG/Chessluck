@@ -323,3 +323,59 @@ Explains what your project is, how to set it up, and how to contribute.
 ---
 
 Let me know which part you want to build or refine next — I can help you scaffold it, write the logic, or even sketch out the flow.
+////////////////////////////////////////////////////////////////////
+Day 1 (today)
+
+Setup MongoDB schema for Friends:
+
+{
+  userId: ObjectId,
+  friends: [ObjectId]
+}
+
+
+Write backend endpoints:
+
+POST /addFriend/:id
+
+DELETE /removeFriend/:id
+
+GET /friends
+
+Day 2
+
+Connect frontend buttons → backend API.
+
+Test adding/removing friends actually updates DB.
+
+Day 3
+
+Setup Socket.IO server in your Express app.
+
+Test with simple “user connected” event in console.
+
+Day 4
+
+Implement private chat between 2 connected users.
+
+Just echo messages → no DB yet.
+
+Day 5
+
+Save chat history in MongoDB:
+
+{
+  senderId: ObjectId,
+  receiverId: ObjectId,
+  message: String,
+  timestamp: Date
+}
+
+
+Write GET /chat/:friendId to fetch history.
+
+Day 6
+
+Connect frontend → load previous chat messages when user opens chat.
+
+You should now have friends + working chat.

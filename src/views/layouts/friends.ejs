@@ -4,282 +4,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Friends List - Dark Theme</title>
-    <link rel="icon" type="image/x-icon" href="/images/faveicon.ico">
+    <title>Friends List</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Custom scrollbar */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #1a202c;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #4a5568;
-            border-radius: 3px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #718096;
-        }
-
-        /* Pulse animation for online status */
-        @keyframes pulse {
-            0% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
-
-            100% {
-                opacity: 1;
-            }
-        }
-
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-    </style>
 </head>
 
 <body class="bg-gray-900 text-gray-200 min-h-screen">
-    <nav class="bg-gray-800 border-b border-gray-700 py-4 px-6 sticky top-0 z-50">
+
+    <!-- Navbar -->
+    <nav class="bg-gray-800 border-b border-gray-700 py-4 px-6">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center space-x-2">
                 <i class="fas fa-chess-queen text-blue-400 text-2xl"></i>
-                <span
-                    class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent hover:text-blue-400 transition"><a
-                        href="http://localhost:5000/">ChessMaster</a></span>
+                <span class="text-xl font-bold text-indigo-400"><a href="/">ChessMaster</a></span>
             </div>
-
-            <div class="hidden md:flex space-x-6">
-                <a href="http://localhost:5000/" class="hover:text-blue-400 transition">Home</a>
-                <a href="http://localhost:5000/play" class="hover:text-blue-400 transition">Play</a>
-                <a href="http://localhost:5000/learn" class="hover:text-blue-400 transition">Puzzles</a>
-                <a href="http://localhost:5000/learn" class="hover:text-blue-400 transition">Learn</a>
-                <a href="http://localhost:5000/friends" class="hover:text-blue-400 transition">Friends</a>
-            </div>
-
-            <div class="flex items-center space-x-4">
-                <button class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md transition"><a
-                        href="http://localhost:5000/auth/login">Sign up</a></button>
-                <button class="hidden md:block bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md transition"><a
-                        href="http://localhost:5000/auth/login">Log In</a></button>
-                <button class="md:hidden text-xl">
-                    <i class="fas fa-bars"></i>
-                </button>
+            <div class="flex space-x-6">
+                <a href="/" class="hover:text-blue-400">Home</a>
+                <a href="/play" class="hover:text-blue-400">Play</a>
+                <a href="/learn" class="hover:text-blue-400">Learn</a>
+                <a href="/friends" class="hover:text-blue-400">Friends</a>
             </div>
         </div>
     </nav>
 
     <div class="container mx-auto px-4 py-8 max-w-6xl">
+
         <!-- Header -->
         <header class="flex justify-between items-center mb-8">
             <div>
                 <h1 class="text-3xl font-bold text-indigo-400">Friends</h1>
                 <p class="text-gray-400">Your social connections</p>
             </div>
-            <div class="flex space-x-4">
-                <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center">
-                    <i class="fas fa-user-plus mr-2"></i> Add Friend
-                </button>
-                <div class="relative">
-                    <input type="text" placeholder="Search friends..."
-                        class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64">
-                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-                </div>
-            </div>
+
+            <!-- Search Form -->
+            <form action="/friends/search" method="GET" class="relative">
+                <input type="text" name="q" placeholder="Search users..."
+                    class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64">
+                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+            </form>
         </header>
 
-        <!-- Friends List Tabs -->
-        <div class="flex border-b border-gray-700 mb-6">
-            <button class="tab-btn active px-4 py-2 text-indigo-400 border-b-2 border-indigo-400 font-medium"
-                data-tab="all">
-                All Friends <span class="bg-indigo-600 text-white text-xs px-2 py-1 rounded-full ml-2">128</span>
-            </button>
-            <button class="tab-btn px-4 py-2 text-gray-400 border-b-2 border-indigo-400 hover:text-white font-medium"
-                data-tab="online">
-                Online <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full ml-2">24</span>
-            </button>
-            <button class="tab-btn px-4 py-2 text-gray-400 border-b-2 border-indigo-400 hover:text-white font-medium"
-                data-tab="pending">
-                Pending <span class="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full ml-2">5</span>
-            </button>
-            <button class="tab-btn px-4 py-2 text-gray-400 border-b-2 border-indigo-400 hover:text-white font-medium"
-                data-tab="blocked">
-                Blocked <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full ml-2">3</span>
-            </button>
-        </div>
-
         <!-- Friends Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 custom-scrollbar overflow-y-auto"
-            style="max-height: 70vh;">
-            <!-- Friend cards will be inserted here by JavaScript -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <% const list = searchResults || friends; %>
+
+            <% if (list && list.length > 0) { %>
+              <% list.forEach(friend => { %>
+                  <div class="bg-gray-800 rounded-lg p-4 shadow-lg">
+                      <div class="flex items-center justify-between">
+                          <p><%= friend.username %> (<%= friend.email %>)</p>
+                      </div>
+
+                      <!-- Action Buttons -->
+                      <div class="flex justify-between mt-4">
+                          <form action="/friends/remove/<%= friend._id %>" method="POST">
+                              <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm">
+                                  <i class="fas fa-user-minus mr-1"></i> Remove
+                              </button>
+                          </form>
+                          <form action="/chat/<%= friend._id %>" method="GET">
+                              <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm">
+                                  <i class="fas fa-comment mr-1"></i> Message
+                              </button>
+                          </form>
+                      </div>
+                  </div>
+              <% }) %>
+            <% } else { %>
+              <p class="text-gray-400">You don’t have any friends yet.</p>
+            <% } %>
         </div>
     </div>
-
-    <script>
-        // Sample friend data
-        const friends = {
-            all: [
-                { id: 1, name: "Alex Johnson", status: "online", lastSeen: "Just now", avatar: "https://randomuser.me/api/portraits/men/1.jpg", mutualFriends: 12, isFavorite: true },
-                { id: 2, name: "Sarah Williams", status: "online", lastSeen: "2 mins ago", avatar: "https://randomuser.me/api/portraits/women/2.jpg", mutualFriends: 8, isFavorite: false },
-                { id: 3, name: "Michael Brown", status: "offline", lastSeen: "1 hour ago", avatar: "https://randomuser.me/api/portraits/men/3.jpg", mutualFriends: 5, isFavorite: true },
-                { id: 4, name: "Emily Davis", status: "online", lastSeen: "5 mins ago", avatar: "https://randomuser.me/api/portraits/women/4.jpg", mutualFriends: 15, isFavorite: false },
-                { id: 5, name: "David Miller", status: "offline", lastSeen: "Yesterday", avatar: "https://randomuser.me/api/portraits/men/5.jpg", mutualFriends: 3, isFavorite: false },
-                { id: 6, name: "Jessica Wilson", status: "online", lastSeen: "10 mins ago", avatar: "https://randomuser.me/api/portraits/women/6.jpg", mutualFriends: 7, isFavorite: true },
-                { id: 7, name: "Daniel Moore", status: "offline", lastSeen: "3 days ago", avatar: "https://randomuser.me/api/portraits/men/7.jpg", mutualFriends: 9, isFavorite: false },
-                { id: 8, name: "Olivia Taylor", status: "online", lastSeen: "Just now", avatar: "https://randomuser.me/api/portraits/women/8.jpg", mutualFriends: 11, isFavorite: false },
-                { id: 9, name: "James Anderson", status: "offline", lastSeen: "Last week", avatar: "https://randomuser.me/api/portraits/men/9.jpg", mutualFriends: 4, isFavorite: true },
-                { id: 10, name: "Sophia Thomas", status: "online", lastSeen: "30 mins ago", avatar: "https://randomuser.me/api/portraits/women/10.jpg", mutualFriends: 6, isFavorite: false },
-                { id: 11, name: "Robert Jackson", status: "offline", lastSeen: "2 hours ago", avatar: "https://randomuser.me/api/portraits/men/11.jpg", mutualFriends: 8, isFavorite: false },
-                { id: 12, name: "Emma White", status: "online", lastSeen: "Just now", avatar: "https://randomuser.me/api/portraits/women/12.jpg", mutualFriends: 14, isFavorite: true }
-            ],
-            online: [
-                { id: 1, name: "Alex Johnson", status: "online", lastSeen: "Just now", avatar: "https://randomuser.me/api/portraits/men/1.jpg", mutualFriends: 12, isFavorite: true },
-                { id: 2, name: "Sarah Williams", status: "online", lastSeen: "2 mins ago", avatar: "https://randomuser.me/api/portraits/women/2.jpg", mutualFriends: 8, isFavorite: false },
-                { id: 4, name: "Emily Davis", status: "online", lastSeen: "5 mins ago", avatar: "https://randomuser.me/api/portraits/women/4.jpg", mutualFriends: 15, isFavorite: false },
-                { id: 6, name: "Jessica Wilson", status: "online", lastSeen: "10 mins ago", avatar: "https://randomuser.me/api/portraits/women/6.jpg", mutualFriends: 7, isFavorite: true },
-                { id: 8, name: "Olivia Taylor", status: "online", lastSeen: "Just now", avatar: "https://randomuser.me/api/portraits/women/8.jpg", mutualFriends: 11, isFavorite: false },
-                { id: 12, name: "Emma White", status: "online", lastSeen: "Just now", avatar: "https://randomuser.me/api/portraits/women/12.jpg", mutualFriends: 14, isFavorite: true }
-            ],
-            pending: [
-                { id: 13, name: "Ryan Garcia", status: "pending", lastSeen: "", avatar: "https://randomuser.me/api/portraits/men/13.jpg", mutualFriends: 2, isFavorite: false },
-                { id: 14, name: "Megan Lee", status: "pending", lastSeen: "", avatar: "https://randomuser.me/api/portraits/women/14.jpg", mutualFriends: 5, isFavorite: false },
-                { id: 15, name: "Kevin Harris", status: "pending", lastSeen: "", avatar: "https://randomuser.me/api/portraits/men/15.jpg", mutualFriends: 1, isFavorite: false }
-            ],
-            blocked: [
-                { id: 16, name: "Tyler Scott", status: "blocked", lastSeen: "", avatar: "https://randomuser.me/api/portraits/men/16.jpg", mutualFriends: 0, isFavorite: false },
-                { id: 17, name: "Amanda Clark", status: "blocked", lastSeen: "", avatar: "https://randomuser.me/api/portraits/women/17.jpg", mutualFriends: 0, isFavorite: false }
-            ]
-        };
-
-        // Tab functionality
-        const tabButtons = document.querySelectorAll('.tab-btn');
-        const friendsGrid = document.querySelector('.grid');
-
-        function renderFriends(tab) {
-            friendsGrid.innerHTML = '';
-            const currentFriends = friends[tab];
-
-            currentFriends.forEach(friend => {
-                const friendCard = document.createElement('div');
-                friendCard.className = 'bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 relative';
-
-                // Favorite star
-                const favoriteStar = friend.isFavorite ?
-                    '<div class="absolute top-2 right-2 text-yellow-400"><i class="fas fa-star"></i></div>' : '';
-
-                // Status indicator
-                let statusIndicator = '';
-                if (friend.status === 'online') {
-                    statusIndicator = '<div class="absolute bottom-2 right-2 w-3 h-3 bg-green-500 rounded-full pulse"></div>';
-                } else if (friend.status === 'offline') {
-                    statusIndicator = '<div class="absolute bottom-2 right-2 w-3 h-3 bg-gray-500 rounded-full"></div>';
-                } else if (friend.status === 'pending') {
-                    statusIndicator = '<div class="absolute bottom-2 right-2 w-3 h-3 bg-yellow-500 rounded-full"></div>';
-                } else if (friend.status === 'blocked') {
-                    statusIndicator = '<div class="absolute bottom-2 right-2 w-3 h-3 bg-red-500 rounded-full"></div>';
-                }
-
-                // Action buttons based on status
-                let actionButtons = '';
-                if (friend.status === 'pending') {
-                    actionButtons = `
-                        <div class="flex justify-between mt-4">
-                            <button class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm flex-1 mr-2">
-                                <i class="fas fa-check mr-1"></i> Accept
-                            </button>
-                            <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm flex-1">
-                                <i class="fas fa-times mr-1"></i> Decline
-                            </button>
-                        </div>
-                    `;
-                } else if (friend.status === 'blocked') {
-                    actionButtons = `
-                        <button class="w-full bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded mt-4">
-                            <i class="fas fa-lock-open mr-1"></i> Unblock
-                        </button>
-                    `;
-                } else {
-                    actionButtons = `
-                        <div class="flex justify-between mt-4">
-                            <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm flex-1 mr-2">
-                                <i class="fas fa-comment mr-1"></i> Message
-                            </button>
-                            <button class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm flex-1">
-                                <i class="fas fa-ellipsis-h"></i>
-                            </button>
-                        </div>
-                    `;
-                }
-
-                friendCard.innerHTML = `
-                    <div class="p-4">
-                        ${favoriteStar}
-                        <div class="flex items-center">
-                            <img src="${friend.avatar}" alt="${friend.name}" class="w-16 h-16 rounded-full object-cover mr-4">
-                            <div>
-                                <h3 class="font-semibold text-lg">${friend.name}</h3>
-                                <p class="text-gray-400 text-sm">
-                                    ${friend.status === 'online' ? 'Online' :
-                        friend.status === 'offline' ? `Last seen ${friend.lastSeen}` :
-                            friend.status === 'pending' ? 'Friend request' : 'Blocked'}
-                                </p>
-                                ${friend.mutualFriends > 0 && friend.status !== 'pending' && friend.status !== 'blocked' ?
-                        `<p class="text-gray-400 text-sm mt-1"><i class="fas fa-users mr-1"></i> ${friend.mutualFriends} mutual friends</p>` : ''}
-                            </div>
-                            ${statusIndicator}
-                        </div>
-                        ${actionButtons}
-                    </div>
-                `;
-
-                friendsGrid.appendChild(friendCard);
-            });
-        }
-
-        // Initial render
-        renderFriends('all');
-
-        // Tab switching
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                tabButtons.forEach(btn => {
-                    btn.classList.remove('active', 'text-indigo-400', 'border-indigo-400');
-                    btn.classList.add('text-gray-400');
-                });
-
-                button.classList.add('active', 'text-indigo-400', 'border-indigo-400');
-                button.classList.remove('text-gray-400');
-
-                const tab = button.getAttribute('data-tab');
-                renderFriends(tab);
-            });
-        });
-
-        // Search functionality
-        const searchInput = document.querySelector('input[type="text"]');
-        searchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            const friendCards = document.querySelectorAll('.grid > div');
-
-            friendCards.forEach(card => {
-                const name = card.querySelector('h3').textContent.toLowerCase();
-                if (name.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
-    </script>
+    
 </body>
-
 </html>
