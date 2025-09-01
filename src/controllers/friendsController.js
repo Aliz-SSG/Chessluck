@@ -3,7 +3,7 @@ const { User } = require('../models/User');
 exports.ShowFriendsList = async (req, res) => {
     try {
         const user = await User.findById(req.user.id).populate("friends", "username email");
-        res.render('friends', { friends: user.friends, searchResults: null });
+        res.render('friends', { friends: user.friends, searchResults: null, currentUser: req.user });
     } catch (err) {
         req.flash("err_msg", "ERROR: " + err.message);
         res.redirect("/");
@@ -26,7 +26,11 @@ exports.AddFriend = async (req, res) => {
         }
 
         user.friends.push(friend._id);
+        friend.friends.push(user._id);
+
         await user.save();
+        await friend.save();
+
 
         req.flash("success_msg", "Friend added successfully");
         res.redirect("/friends");
@@ -45,10 +49,10 @@ exports.RemoveFriend = async (req, res) => {
         await user.save();
 
         req.flash("success_msg", "Friend removed successfully");
-        res.redirect("back");
+        res.redirect("/friends");
     } catch (err) {
         req.flash("err_msg", "ERROR: " + err.message);
-        res.redirect("back");
+        res.redirect("/friends");
     }
 };
 exports.SearchUsers = async (req, res) => {
@@ -64,7 +68,7 @@ exports.SearchUsers = async (req, res) => {
             username: { $regex: query, $options: "i" }
         }).select("username email"); // only return these fields
 
-        res.render("friends", { friends: [], searchResults: users });
+        res.render("friends", { friends: [], searchResults: users, currentUser: req.user });
     } catch (err) {
         console.error(err);
         req.flash("err_msg", "ERROR: " + err.message);
