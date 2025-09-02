@@ -23,13 +23,13 @@ const userSchema = new mongoose.Schema({
     },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
-    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }]
-
-
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    status: { type: String, enum: ["online", "offline"], default: "offline" },
+    lastActive: { type: Date, default: Date.now }
 });
 
 userSchema.plugin(passportLocalMongoose);
 
 const User = mongoose.model('User', userSchema);
 
-exports.User = User;
+module.exports = User;

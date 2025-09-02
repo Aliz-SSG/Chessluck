@@ -1,10 +1,14 @@
-const { User } = require('../models/User');
-
+const User = require('../models/User');
+const isAuthenticatedUser = require('../middlewares/authMiddleware.js');
 exports.ShowFriendsList = async (req, res) => {
     try {
         const user = await User.findById(req.user.id).populate("friends", "username email");
-        res.render('friends', { friends: user.friends, searchResults: null, currentUser: req.user });
-    } catch (err) {
+        const friendsWithStatus = user.friends.map(friend => ({
+            ...friend.toObject(), status: isAuthenticatedUser.getUserStatus(friend)
+        }))
+        res.render('friends', { friends: friendsWithStatus, searchResults: null, currentUser: req.user });
+    }
+    catch (err) {
         req.flash("err_msg", "ERROR: " + err.message);
         res.redirect("/");
     }
@@ -75,3 +79,23 @@ exports.SearchUsers = async (req, res) => {
         res.redirect("/");
     }
 };
+//////////////////////////////////////////
+// exports.ShowChat = (req, res) => {
+//     try {
+//         io.on("connection", (socket) => {
+//             console.log("A user connected:", socket.id);
+
+//             socket.on("chatMessage", (msg) => {
+//                 console.log("Message received:", msg);
+//                 io.emit("chatMessage", msg); // send to everyone
+//             });
+
+//             socket.on("disconnect", () => {
+//                 console.log("User disconnected:", socket.id);
+//             });
+//         });
+//     }
+//     catch (err) {
+
+//     }
+// }

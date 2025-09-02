@@ -9,9 +9,12 @@ const session = require('express-session');
 const flash = require('connect-flash');
 const passport = require('passport');
 const localStrategy = require('passport-local').Strategy;
-const { User } = require('./src/models/User.js')
+const User = require('./src/models/User')
 const config = require('./src/config/index.js')
-
+const { Server } = require('socket.io');
+const http = require("http");
+const server = http.createServer(app);
+const io = new Server(server);
 mongoose.connect(process.env.DATABASE_LOCAL, {})
     .then(() => console.log('connected to mongodb...'))
     .catch(err => console.log('connection to mongodb lost...', err))

@@ -47,19 +47,32 @@
         <!-- Friends Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <% const list = (searchResults && searchResults.length > 0) ? searchResults : (friends || []); %>
+            
 
             <% if (list.length > 0) { %>
               <% list.forEach(user => { %>
                   <div class="bg-gray-800 rounded-lg p-4 shadow-lg flex flex-col items-center text-center">
                       
-                      <!-- Profile Picture Placeholder -->
-                      <div class="w-16 h-16 rounded-full bg-gray-600 flex items-center justify-center text-xl font-bold text-white mb-3">
-                          <i class="fas fa-user"></i>
-                      </div>
-
-                      <!-- User Info -->
-                      <p class="font-semibold text-lg"><%= user.username %></p>
-                      <p class="text-gray-400 text-sm"><%= user.email %></p>
+                     <!-- Profile Picture Placeholder -->
+<div class="w-16 h-16 rounded-full bg-gray-600 flex items-center justify-center text-xl font-bold text-white mb-3">
+    <i class="fas fa-user"></i>
+  </div>
+  
+  <!-- User Info -->
+  <p class="font-semibold text-lg"><%= user.username %></p>
+  <p class="text-gray-400 text-sm"><%= user.email %></p>
+  
+  <!-- Status -->
+  <div class="flex items-center mt-2">
+    <% if (user.status === "online") { %>
+      <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+      <span class="text-green-500 text-sm font-medium">Online</span>
+    <% } else { %>
+      <span class="w-3 h-3 bg-gray-500 rounded-full mr-2"></span>
+      <span class="text-gray-400 text-sm font-medium">Offline</span>
+    <% } %>
+  </div>
+  
 
                       <!-- Action Buttons -->
                       <div class="flex justify-center gap-2 mt-4">

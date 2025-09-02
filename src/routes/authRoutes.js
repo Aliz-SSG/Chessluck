@@ -5,11 +5,11 @@ const authController = require('../controllers/authController.js');
 const isAuthenticatedUser = require('../middlewares/authMiddleware.js');
 
 router.get("/login", authController.showLoginForm);
-router.get('/dashboard', isAuthenticatedUser, authController.showDashboard);
-router.get('/logout', isAuthenticatedUser, authController.logoutUser);
+router.get('/dashboard', isAuthenticatedUser.isAuthenticatedUser, authController.showDashboard);
+router.get('/logout', isAuthenticatedUser.isAuthenticatedUser, authController.logoutUser);
 router.get('/recovery', authController.showRecoveryForm);
 router.get('/reset/:token', authController.showResetForm);
-router.get('/changepassword', isAuthenticatedUser, authController.showChangePasswordForm);
+router.get('/changepassword', isAuthenticatedUser.isAuthenticatedUser, authController.showChangePasswordForm);
 
 router.post('/login', passport.authenticate('local', {
     successRedirect: '/auth/dashboard',
@@ -20,7 +20,7 @@ router.post('/login', passport.authenticate('local', {
 router.post('/signup', authController.registerUser);
 router.post('/recovery', authController.sendRecoveryEmail);
 router.post('/reset/:token', authController.resetPassword);
-router.post('/changepassword', isAuthenticatedUser, authController.changePassword);
+router.post('/changepassword', isAuthenticatedUser.isAuthenticatedUser, authController.changePassword);
 
 
 module.exports = router
