@@ -80,22 +80,3 @@ exports.SearchUsers = async (req, res) => {
     }
 };
 //////////////////////////////////////////
-// exports.ShowChat = (req, res) => {
-//     try {
-//         io.on("connection", (socket) => {
-//             console.log("A user connected:", socket.id);
-
-//             socket.on("chatMessage", (msg) => {
-//                 console.log("Message received:", msg);
-//                 io.emit("chatMessage", msg); // send to everyone
-//             });
-
-//             socket.on("disconnect", () => {
-//                 console.log("User disconnected:", socket.id);
-//             });
-//         });
-//     }
-//     catch (err) {
-
-//     }
-// }

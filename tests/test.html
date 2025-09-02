@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChessLuck Chat</title>
+  <link rel="icon" type="image/x-icon" href="/images/faveicon.ico">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .chat-container {
+      height: calc(100vh - 160px);
+    }
+    .message-input:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    }
+    .message-bubble {
+      max-width: 70%;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-gray-100">
+  <!-- Navigation -->
+  <nav class="bg-gray-800 border-b border-gray-700 py-4 px-6 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center space-x-2">
+        <i class="fas fa-chess-queen text-blue-400 text-2xl"></i>
+        <span class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+          ChessLuck Chat
+        </span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Chat Container -->
+  <div class="max-w-4xl mx-auto px-4 py-6">
+    <!-- Friend Info -->
+    <div class="flex items-center mb-6 p-4 bg-gray-800 rounded-lg">
+      <img src="<%= friend.pfp || '/images/default-pfp.png' %>" 
+           class="w-12 h-12 rounded-full border-2 border-blue-500" alt="friend">
+      <div class="ml-4">
+        <h3 class="font-bold text-lg"><%= friend.username %></h3>
+        <p class="text-gray-400 text-sm">
+          <%= friend.online ? "Online" : "Offline" %>
+          <% if (friend.online) { %>
+            <span class="w-2 h-2 inline-block rounded-full bg-green-500 ml-1"></span>
+          <% } %>
+        </p>
+      </div>
+    </div>
+
+    <!-- Messages Container -->
+    <div id="messages" class="chat-container overflow-y-auto mb-4 p-4 bg-gray-800 rounded-lg shadow-inner">
+      <div class="space-y-4">
+        <% if (messages && messages.length > 0) { %>
+          <% messages.forEach(msg => { %>
+            <% if (msg.sender.toString() === currentUser._id.toString()) { %>
+              <!-- User Message -->
+              <div class="flex items-start justify-end">
+                <div class="text-right">
+                  <div class="bg-blue-600 text-white px-4 py-2 rounded-l-lg rounded-br-lg message-bubble inline-block">
+                    <%= msg.text %>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1 mr-1"><%= msg.time.toLocaleString ? msg.time.toLocaleString() : msg.time %></p>
+                </div>
+                <img src="<%= currentUser.pfp || '/images/default-pfp.png' %>" class="w-8 h-8 rounded-full mt-1 ml-3" alt="You">
+              </div>
+            <% } else { %>
+              <!-- Friend Message -->
+              <div class="flex items-start">
+                <img src="<%= friend.pfp || '/images/default-pfp.png' %>" class="w-8 h-8 rounded-full mt-1 mr-3" alt="friend">
+                <div>
+                  <div class="bg-gray-700 text-gray-100 px-4 py-2 rounded-r-lg rounded-bl-lg message-bubble">
+                    <%= msg.text %>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1 ml-1"><%= msg.time.toLocaleString ? msg.time.toLocaleString() : msg.time %></p>
+                </div>
+              </div>
+            <% } %>
+          <% }) %>
+        <% } else { %>
+          <p class="text-gray-500 text-center">No messages yet. Start the conversation!</p>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Message Input -->
+    <form id="chat-form" class="flex items-center bg-gray-800 rounded-lg p-3">
+      <button type="button" class="text-gray-400 hover:text-blue-400 p-2 mr-2" aria-label="Add Emoji">
+        <i class="far fa-smile"></i>
+      </button>
+      <input id="message-input" type="text" placeholder="Type your message..." 
+             class="message-input flex-grow bg-gray-700 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500" required>
+      <button type="submit" class="ml-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 transition" aria-label="Send Message">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </form>
+  </div>
+
+  <!-- Socket.IO -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // const socket = io();
+    // const form = document.getElementById("chat-form");
+    // const input = document.getElementById("message-input");
+    // const messages = document.getElementById("messages");
+
+    // Auto-scroll
+    function scrollToBottom() {
+      messages.scrollTop = messages.scrollHeight;
+    }
+    scrollToBottom();
+
+    // Form submission via socket
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const msg = input.value.trim();
+      if (msg.length === 0) return;
+      socket.emit("chatMessage", { text: msg });
+      input.value = "";
+    });
+
+    // Listen for new messages
+    socket.on("chatMessage", (msg) => {
+      const div = document.createElement("div");
+      div.className = "flex items-start justify-end mb-2";
+      div.innerHTML = `
+        <div class="text-right">
+          <div class="bg-blue-600 text-white px-4 py-2 rounded-l-lg rounded-br-lg message-bubble inline-block">
+            ${msg.text}
+          </div>
+          <p class="text-xs text-gray-500 mt-1 mr-1">${new Date().toLocaleTimeString()}</p>
+        </div>
+        <img src="<%= currentUser.pfp || '/images/default-pfp.png' %>" class="w-8 h-8 rounded-full mt-1 ml-3" alt="You">
+      `;
+      messages.appendChild(div);
+      scrollToBottom();
+    });
+  </script>
+</body>
+</html>

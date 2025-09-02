@@ -7,4 +7,5 @@ router.get('/', isAuthenticatedUser.isAuthenticatedUser, freindsController.ShowF
 router.get('/search', isAuthenticatedUser.isAuthenticatedUser, freindsController.SearchUsers);
 router.post('/add/:id', isAuthenticatedUser.isAuthenticatedUser, freindsController.AddFriend)
 router.post('/remove/:id', isAuthenticatedUser.isAuthenticatedUser, freindsController.RemoveFriend)
+
 module.exports = router;  

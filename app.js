@@ -15,6 +15,34 @@ const { Server } = require('socket.io');
 const http = require("http");
 const server = http.createServer(app);
 const io = new Server(server);
+
+// Store active chat rooms
+const activeChats = new Map();
+
+io.on('connection', (socket) => {
+    console.log('a user connected:', socket.id);
+
+    // Join a specific chat room
+    socket.on('joinChat', (data) => {
+        const { currentUserId, friendId } = data;
+        const roomId = [currentUserId, friendId].sort().join('-');
+        socket.join(roomId);
+        console.log(`User ${currentUserId} joined chat room: ${roomId}`);
+    });
+
+    socket.on('chatMessage', (msg) => {
+        console.log('message:', msg);
+        const { senderId, receiverId } = msg;
+        const roomId = [senderId, receiverId].sort().join('-');
+
+        // Emit to the specific chat room
+        io.to(roomId).emit('chatMessage', msg);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('user disconnected:', socket.id);
+    });
+});
 mongoose.connect(process.env.DATABASE_LOCAL, {})
     .then(() => console.log('connected to mongodb...'))
     .catch(err => console.log('connection to mongodb lost...', err))
@@ -48,4 +76,8 @@ app.use(router);
 
 
 const Port = process.env.PORT || 5000;
-app.listen(Port, console.log(`listening on port ${Port}!!!`));
+// app.listen(Port, console.log(`listening on port ${Port}!!!`));
+server.listen(Port, () => {
+    console.log(`listening on port ${Port}!!!`);
+});
+
