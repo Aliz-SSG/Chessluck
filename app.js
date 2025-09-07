@@ -31,11 +31,11 @@ io.on('connection', (socket) => {
     });
 
     socket.on('chatMessage', (msg) => {
-        console.log('message:', msg);
+        // console.log('message:', msg);
         const { senderId, receiverId } = msg;
         const roomId = [senderId, receiverId].sort().join('-');
 
-        // Emit to the specific chat room
+
         io.to(roomId).emit('chatMessage', msg);
     });
 

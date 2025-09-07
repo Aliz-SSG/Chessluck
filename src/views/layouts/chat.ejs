@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<%- include ('../partials/messages.ejs')-%>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -19,18 +20,6 @@
   </style>
 </head>
 <body class="bg-gray-900 text-gray-100">
-  <!-- Inject currentUser and friend into JS -->
-  <script>
-    const currentUser = {
-      _id: "<%= currentUser._id %>",
-      pfp: "<%= currentUser.pfp || '/images/default-pfp.png' %>"
-    };
-    const friend = {
-      _id: "<%= friend._id %>",
-      pfp: "<%= friend.pfp || '/images/default-pfp.png' %>"
-    };
-  </script>
-
   <!-- Navigation -->
   <nav class="bg-gray-800 border-b border-gray-700 py-4 px-6">
     <div class="max-w-7xl mx-auto flex justify-between items-center">
@@ -54,10 +43,13 @@
       <img src="<%= friend.pfp || '/images/default-pfp.png' %>" class="w-12 h-12 rounded-full border-2 border-blue-500" alt="friend" />
       <div class="ml-4">
         <h3 class="font-bold text-lg"><%= friend.username %></h3>
-        <p class="text-gray-400 text-sm">
-          <%= friend.online ? "Online" : "Offline" %>
-          <% if (friend.online) { %>
-            <span class="w-2 h-2 inline-block rounded-full bg-green-500 ml-1"></span>
+        <p class="text-gray-400 text-sm flex items-center gap-2">
+          <% if (friend.status === 'online') { %>
+            <span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
+            Online
+          <% } else { %>
+            <span class="w-2 h-2 rounded-full bg-gray-500 inline-block"></span>
+            Offline
           <% } %>
         </p>
       </div>
@@ -107,14 +99,27 @@
   <!-- Socket.IO -->
   <script src="/socket.io/socket.io.js"></script>
   <script>
+    // ✅ Inject server variables into JS
+    const currentUser = {
+      _id: "<%= currentUser._id %>",
+      username: "<%= currentUser.username %>",
+      pfp: "<%= currentUser.pfp || '/images/default-pfp.png' %>"
+    };
+
+    const friend = {
+      _id: "<%= friend._id %>",
+      username: "<%= friend.username %>",
+      pfp: "<%= friend.pfp || '/images/default-pfp.png' %>"
+    };
+
     document.addEventListener("DOMContentLoaded", () => {
       const socket = io();
       const form = document.getElementById("chat-form");
       const input = document.getElementById("message-input");
       const messages = document.getElementById("message-list");
 
-      // Join the specific chat room
-      socket.emit('joinChat', {
+      // Join chat room
+      socket.emit("joinChat", {
         currentUserId: currentUser._id,
         friendId: friend._id
       });
@@ -126,8 +131,6 @@
 
       function renderMessage({ text, time, senderId }) {
         const isCurrentUser = senderId === currentUser._id;
-
-        // Remove "No messages yet" prompt if present
         const emptyPrompt = document.getElementById("empty-prompt");
         if (emptyPrompt) emptyPrompt.remove();
 
@@ -171,7 +174,6 @@
         const msg = input.value.trim();
         if (!msg) return;
 
-        // Disable form while sending
         const submitBtn = form.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
 
@@ -184,61 +186,15 @@
 
         socket.emit("chatMessage", messageData);
         input.value = "";
-        
-        // Re-enable form after a short delay
+
         setTimeout(() => {
           submitBtn.disabled = false;
         }, 500);
       });
 
-      // Handle Enter key for sending messages
-      input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          form.dispatchEvent(new Event('submit'));
-        }
-      });
-
       socket.on("chatMessage", (msg) => {
         renderMessage(msg);
       });
-
-      // Error handling
-      socket.on('connect_error', (error) => {
-        console.error('Socket connection error:', error);
-        showNotification('Connection error. Trying to reconnect...', 'error');
-      });
-
-      socket.on('error', (error) => {
-        console.error('Socket error:', error);
-        showNotification('Socket error occurred', 'error');
-      });
-
-      socket.on('disconnect', () => {
-        console.log('Disconnected from server');
-        showNotification('Disconnected from server', 'warning');
-      });
-
-      socket.on('reconnect', () => {
-        console.log('Reconnected to server');
-        showNotification('Reconnected to server', 'success');
-      });
-
-      function showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-          type === 'error' ? 'bg-red-600' : 
-          type === 'warning' ? 'bg-yellow-600' : 
-          type === 'success' ? 'bg-green-600' : 'bg-blue-600'
-        } text-white`;
-        notification.textContent = message;
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-          notification.remove();
-        }, 3000);
-      }
     });
   </script>
 </body>

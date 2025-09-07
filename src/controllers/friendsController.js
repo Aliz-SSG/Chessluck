@@ -2,7 +2,7 @@ const User = require('../models/User');
 const isAuthenticatedUser = require('../middlewares/authMiddleware.js');
 exports.ShowFriendsList = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).populate("friends", "username email");
+        const user = await User.findById(req.user.id).populate("friends", "username email lastActive status");
         const friendsWithStatus = user.friends.map(friend => ({
             ...friend.toObject(), status: isAuthenticatedUser.getUserStatus(friend)
         }))
