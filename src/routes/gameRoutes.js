@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-
-// Your routes here
-router.get('/', (req, res) => { /* ... */ });
-
-module.exports = router;  // Must export the router
+const gameController = require('../controllers/gameController')
+router.post('/play/:id', gameController.matchmaking)
+router.get('/:gameId/deck-selection',);
+module.exports = router; 

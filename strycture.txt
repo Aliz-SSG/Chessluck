@@ -379,3 +379,108 @@ Day 6
 Connect frontend → load previous chat messages when user opens chat.
 
 You should now have friends + working chat.
+//////////////////////////////////////////
+Got it 🔥 — you want to finish the **entire game part in 7 days** with:
+
+* **Socket.IO** for real-time gameplay
+* **chess.js** for rules & validation
+* **chessboard.js** for UI
+* **Custom deck selection system** before starting the game
+
+Here’s a **day-by-day battle plan** that’s realistic but intense:
+
+---
+
+## **Day 1 → Game Schema + Socket Setup**
+
+* Create `Game` model (we already sketched it).
+* Add `deck` field for each player in schema:
+
+  ```js
+  playerWhiteDeck: String,
+  playerBlackDeck: String
+  ```
+* Set up Socket.IO game rooms (`joinGame`, `makeMove`).
+* Make sure game state is saved to DB and synced with all clients.
+  ✅ Goal: Two browsers can join the same room and share the board state (moves update live).
+
+---
+
+## **Day 2 → Chessboard.js Frontend Integration**
+
+* Render a chessboard using **chessboard.js**.
+* Connect board events to Socket.IO (`onDrop → sendMove`).
+* Update board when opponent moves (`socket.on('moveMade')`).
+* Test moves are synced properly.
+  ✅ Goal: Two players can play a normal chess match online with real-time updates.
+
+---
+
+## **Day 3 → Deck Selection System (Backend)**
+
+* Add **DeckPool** (static JSON or DB) with chess set themes.
+  Example: `{ id: "medieval", name: "Medieval Set", pieces: { ... } }`
+* Endpoint `/game/deckSelection/:gameId` → randomly assign 3 deck options per player.
+* Save chosen deck in `Game.playerWhiteDeck` / `Game.playerBlackDeck`.
+  ✅ Goal: API provides 3 random deck options per user before the game starts.
+
+---
+
+## **Day 4 → Deck Selection System (Frontend)**
+
+* Build a **deck selection page** before the board loads.
+* Each player sees 3 deck options → clicks one → send choice to server via Socket.IO (`chooseDeck`).
+* When both players pick, start the game.
+  ✅ Goal: Players must select a deck before they see the chessboard.
+
+---
+
+## **Day 5 → Game Flow & UI Polish**
+
+* Add **game lobby screen**:
+
+  * Shows both players, their chosen decks, and “Game starting…”
+* Auto-redirect to game board once both are ready.
+* Show player names + deck theme on the board page.
+  ✅ Goal: Smooth flow → Lobby → Deck Select → Board.
+
+---
+
+## **Day 6 → Win/End Conditions + Persistence**
+
+* Use `chess.js` to detect:
+
+  * Checkmate → set `winner` in DB
+  * Stalemate / Draw
+* Broadcast **Game Over** via Socket.IO (`gameOver`).
+* Save full move history in DB for match history.
+  ✅ Goal: Games finish cleanly with results stored.
+
+---
+
+## **Day 7 → Testing + UX Improvements**
+
+* Test: multiple games at once (room isolation).
+* Add visual indicators:
+
+  * Turn highlight
+  * Captured pieces display
+* Add fallback: if one player disconnects, other wins by default after X minutes.
+  ✅ Goal: Playable, stable, fun chess with deck selection.
+
+---
+
+### 📌 By the end of 7 days:
+
+* Full **multiplayer chess engine**
+* Custom **deck system**
+* Clean **game flow (Lobby → Decks → Match → Result)**
+* All games saved in DB for history
+
+---
+
+🔥 No excuses: this is doable in a week if you stay locked in.
+
+---
+
+Do you want me to **sketch the Deck schema + Socket.IO events for deck selection** (so Day 3 is ready to code without thinking)?
