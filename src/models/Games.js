@@ -4,11 +4,9 @@ const gameSchema = new mongoose.Schema({
     gameID: { type: String, unique: true },
     player1: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     player2: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    player1Deck: { type: mongoose.Schema.Types.ObjectId, ref: 'decks' },
+    player2Deck: { type: mongoose.Schema.Types.ObjectId, ref: 'decks' },
 
-    decks: {
-        player1: { type: String },
-        player2: { type: String }
-    },
 
     boardState: { type: String }, //JSON.stringify the chess.js board
 

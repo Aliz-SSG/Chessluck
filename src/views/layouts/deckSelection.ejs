@@ -198,52 +198,22 @@
         <p class="subtitle">Choose a chess piece set for your game</p>
     </div>
 
-    <div class="decks-container">
-        <div class="deck-card" data-deck="classic">
-            <div class="deck-info">
-                <h2 class="deck-name">Classic</h2>
-                <p class="deck-description">Traditional Staunton design with elegant curves</p>
-            </div>
-            <div class="deck-preview">
-                <div class="piece">♔</div>
-                <div class="piece">♕</div>
-                <div class="piece">♖</div>
-                <div class="piece">♗</div>
-                <div class="piece">♘</div>
-                <div class="piece">♙</div>
-            </div>
+        </div><div class="decks-container">
+            <% decks.forEach(deck => { %>
+                <div class="deck-card" data-deck="<%= deck._id %>">
+                    <div class="deck-info">
+                        <h2 class="deck-name"><%= deck.name %></h2>
+                        <p class="deck-description"><%= deck.description || 'Custom deck' %></p>
+                    </div>
+                    <!-- <div class="deck-preview">
+                        <% deck.pieces.forEach(piece => { %>
+                            <div class="piece"><%= piece %></div>
+                        <% }) %>
+                    </div> -->
+                </div>
+            <% }) %>
         </div>
-
-        <div class="deck-card" data-deck="modern">
-            <div class="deck-info">
-                <h2 class="deck-name">Modern</h2>
-                <p class="deck-description">Sleek contemporary style with clean lines</p>
-            </div>
-            <div class="deck-preview">
-                <div class="piece">♚</div>
-                <div class="piece">♛</div>
-                <div class="piece">♜</div>
-                <div class="piece">♝</div>
-                <div class="piece">♞</div>
-                <div class="piece">♟</div>
-            </div>
-        </div>
-
-        <div class="deck-card" data-deck="elegant">
-            <div class="deck-info">
-                <h2 class="deck-name">Elegant</h2>
-                <p class="deck-description">Ornate decorative pieces with intricate details</p>
-            </div>
-            <div class="deck-preview">
-                <div class="piece">♔</div>
-                <div class="piece">♕</div>
-                <div class="piece">♖</div>
-                <div class="piece">♗</div>
-                <div class="piece">♘</div>
-                <div class="piece">♙</div>
-            </div>
-        </div>
-    </div>
+        
 
     <button class="confirm-button" id="confirmBtn">Confirm Selection</button>
     <p class="status-text">Both players must select their decks to continue</p>
