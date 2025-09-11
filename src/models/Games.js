@@ -9,11 +9,8 @@ const gameSchema = new mongoose.Schema({
 
 
     boardState: { type: String }, //JSON.stringify the chess.js board
-
     turn: { type: String, enum: ["white", "black"], default: "white" },
-
     state: { type: String, enum: ["deckSelection", "playing", "ended"], default: "deckSelection" },
-
     moves: [
         {
             from: String,
@@ -24,8 +21,11 @@ const gameSchema = new mongoose.Schema({
     ],
 
     winner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    loser: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    isDraw: { type: Boolean, default: false },
 
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+    endedAt: { type: Date }
 });
 
 module.exports = mongoose.model("Game", gameSchema);

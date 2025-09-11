@@ -25,7 +25,10 @@ const userSchema = new mongoose.Schema({
     resetPasswordExpires: Date,
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     status: { type: String, enum: ["online", "offline"], default: "offline" },
-    lastActive: { type: Date, default: Date.now }
+    lastActive: { type: Date, default: Date.now },
+    wins: { type: Number, default: 0 },
+    losses: { type: Number, default: 0 },
+    draws: { type: Number, default: 0 },
 });
 
 userSchema.plugin(passportLocalMongoose);
