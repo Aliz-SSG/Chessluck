@@ -6,7 +6,7 @@ exports.ShowFriendsList = async (req, res) => {
         const friendsWithStatus = user.friends.map(friend => ({
             ...friend.toObject(), status: isAuthenticatedUser.getUserStatus(friend)
         }))
-        res.render('friends', { friends: friendsWithStatus, searchResults: null, currentUser: req.user });
+        res.render('friends', { friends: friendsWithStatus, searchResults: null, currentUser: req.user, user: req.user });
     }
     catch (err) {
         req.flash("err_msg", "ERROR: " + err.message);

@@ -1,7 +1,8 @@
+const { required } = require('joi');
 const mongoose = require('mongoose');
 
 const gameSchema = new mongoose.Schema({
-    gameID: { type: String, unique: true },
+    gameID: { type: String, unique: true, required: true },
     player1: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     player2: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     player1Deck: { type: mongoose.Schema.Types.ObjectId, ref: 'decks' },
@@ -10,7 +11,7 @@ const gameSchema = new mongoose.Schema({
 
     boardState: { type: String }, //JSON.stringify the chess.js board
     turn: { type: String, enum: ["white", "black"], default: "white" },
-    state: { type: String, enum: ["deckSelection", "playing", "ended"], default: "deckSelection" },
+    state: { type: String, enum: ["waiting", "deck-selection", "playing", "finished"], default: "deck-selection" },
     moves: [
         {
             from: String,

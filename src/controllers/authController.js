@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
 const passportLocalMongoose = require('passport-local-mongoose')
 
 exports.showLoginForm = (req, res) => res.render('login');
-exports.showDashboard = (req, res) => res.render('dashboard');
+exports.showDashboard = (req, res) => res.render('dashboard', { user: req.user });
 exports.showRecoveryForm = (req, res) => res.render('recovery');
 exports.showResetForm = (req, res) => {
     User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } })

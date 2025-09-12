@@ -115,7 +115,10 @@
 
                 <div class="hidden md:flex space-x-6">
                     <a href="http://localhost:5000/" class="hover:text-blue-400 transition">Home</a>
-                    <a href="http://localhost:5000/play" class="hover:text-blue-400 transition">Play</a>
+                    <form action="/game/play/<%= user.id %>" method="post" class="hover:text-blue-400 transition">
+                      <button>Play</button>
+                    </form>
+                    
                     <a href="http://localhost:5000/learn" class="hover:text-blue-400 transition">Puzzles</a>
                     <a href="http://localhost:5000/learn" class="hover:text-blue-400 transition">Learn</a>
                     <a href="http://localhost:5000/friends" class="hover:text-blue-400 transition">Friends</a>
@@ -152,125 +155,24 @@
             </div>
           
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-              <% stats.forEach(stat => { %>
-                <div class="bg-gray-800 rounded-xl p-4 border-l-4 border-<%= stat.color %>-500">
-                  <div class="flex justify-between">
-                    <div>
-                      <p class="text-gray-400"><%= stat.label %></p>
-                      <h3 class="text-2xl font-bold"><%= stat.value %></h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-full bg-<%= stat.color %>-900/30 flex items-center justify-center">
-                      <i class="fas <%= stat.icon %> text-<%= stat.color %>-400"></i>
-                    </div>
-                  </div>
-                  <% if (stat.change) { %>
-                    <div class="mt-2 flex items-center text-<%= stat.changeColor %>-400 text-sm">
-                      <i class="fas fa-arrow-<%= stat.change > 0 ? 'up' : 'down' %> mr-1"></i>
-                      <span><%= stat.changeText %></span>
-                    </div>
-                  <% } %>
-                </div>
-              <% }) %>
-            </div>
+            
           
             <!-- Current Game -->
-            <% if (currentGame) { %>
-              <div class="lg:col-span-2 bg-gray-800 rounded-xl p-6">
-                <div class="flex justify-between items-center mb-4">
-                  <h3 class="text-lg font-semibold">Your Current Game</h3>
-                  <span class="text-sm bg-indigo-900/50 text-indigo-300 px-3 py-1 rounded-full">
-                    Turn: <%= currentGame.turn === user.username ? 'Your Move' : currentGame.turn %>
-                  </span>
-                </div>
-          
-                <div class="flex flex-col md:flex-row gap-6">
+            
                   <!-- Board Placeholder -->
-                  <div class="chess-board w-full md:w-96 h-96 rounded-lg overflow-hidden relative">
+                 
                     <!-- Here you’d render the actual board -->
-                    <div class="absolute inset-0 flex items-center justify-center">
-                      <div class="text-center">
-                        <i class="fas fa-chess-knight text-6xl text-white opacity-20"></i>
-                        <p class="mt-2 text-gray-300">Game in progress</p>
-                      </div>
-                    </div>
-                  </div>
+                    
           
                   <!-- Players Info -->
-                  <div class="flex-1">
-                    <div class="bg-gray-700 rounded-lg p-4 mb-4">
-                      <% currentGame.players.forEach((player, i) => { %>
-                        <div class="flex justify-between items-center mb-3">
-                          <div class="flex items-center space-x-3">
-                            <img src="<%= player.avatar %>" alt="Player"
-                                 class="w-10 h-10 rounded-full">
-                            <div>
-                              <p class="font-medium"><%= player.name %> (<%= i === 0 ? 'White' : 'Black' %>)</p>
-                              <p class="text-xs text-gray-400">Rating: <%= player.rating %></p>
-                            </div>
-                          </div>
-                          <% if (player.ratingChange) { %>
-                            <span class="bg-gray-600 px-2 py-1 rounded text-xs">
-                              <%= player.ratingChange > 0 ? '+' : '' %><%= player.ratingChange %>
-                            </span>
-                          <% } %>
-                        </div>
-                      <% }) %>
-                    </div>
-          
+                  
                     <!-- Move History -->
-                    <div class="bg-gray-700 rounded-lg p-4 h-48 overflow-y-auto move-history">
-                      <h4 class="font-medium mb-3">Move History</h4>
-                      <div class="grid grid-cols-2 gap-2 text-sm">
-                        <% currentGame.moves.forEach(move => { %>
-                          <div class="bg-gray-800 p-2 rounded"><%= move %></div>
-                        <% }) %>
-                      </div>
-                    </div>
-          
+                    
                     <!-- Actions -->
-                    <div class="mt-4 flex space-x-3">
-                      <button class="flex-1 bg-red-600 hover:bg-red-700 py-2 rounded-lg transition">Resign</button>
-                      <button class="flex-1 bg-gray-600 hover:bg-gray-500 py-2 rounded-lg transition">Offer Draw</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            <% } %>
+                    
           
             <!-- Recent Activity -->
-            <div class="space-y-6">
-              <div class="bg-gray-800 rounded-xl p-6">
-                <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
-                <div class="space-y-4">
-                  <% activities.forEach(activity => { %>
-                    <div class="flex items-start space-x-3">
-                      <div class="relative">
-                        <img src="<%= activity.user.avatar %>" alt="User" class="w-10 h-10 rounded-full">
-                        <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-<%= activity.badgeColor %>-600 rounded-full flex items-center justify-center">
-                          <i class="fas <%= activity.icon %> text-xs text-white"></i>
-                        </div>
-                      </div>
-                      <div>
-                        <p class="text-sm"><%= activity.text %></p>
-                        <p class="text-xs text-gray-400 mt-1"><%= activity.time %></p>
-                        <% if (activity.buttons) { %>
-                          <div class="mt-2 flex space-x-2">
-                            <% activity.buttons.forEach(btn => { %>
-                              <button class="text-xs bg-<%= btn.color %>-600 hover:bg-<%= btn.color %>-700 px-3 py-1 rounded-full transition">
-                                <%= btn.label %>
-                              </button>
-                            <% }) %>
-                          </div>
-                        <% } %>
-                      </div>
-                    </div>
-                  <% }) %>
-                </div>
-              </div>
-            </div>
-          </main>
-          
+            
             <script>
                 // In a real implementation, this would handle game state, moves, etc.
                 document.addEventListener('DOMContentLoaded', function () {

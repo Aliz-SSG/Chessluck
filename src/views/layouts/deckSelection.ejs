@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <%- include ('../partials/messages.ejs')-%>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chess Deck Selection</title>
@@ -216,12 +217,27 @@
         
 
     <button class="confirm-button" id="confirmBtn">Confirm Selection</button>
-    <p class="status-text">Both players must select their decks to continue</p>
+    <p class="status-text" id="statusText">Both players must select their decks to continue</p>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const socket = io();
+            // Register user to receive events
+            <% if (typeof currentUserId !== 'undefined') { %>
+            socket.emit('registerUser', '<%= currentUserId %>');
+            <% } %>
+
+            // If both decks selected anywhere, redirect to game page
+            socket.on('bothDecksSelected', function(data) {
+                if (data && data.gameId) {
+                    window.location.href = `/game/${data.gameId}`;
+                }
+            });
+
             const deckCards = document.querySelectorAll('.deck-card');
             const confirmBtn = document.getElementById('confirmBtn');
+            const statusText = document.getElementById('statusText');
             let selectedDeck = null;
 
             deckCards.forEach(card => {
@@ -254,11 +270,25 @@
                 });
             });
 
-            confirmBtn.addEventListener('click', function() {
+            confirmBtn.addEventListener('click', async function() {
                 if (selectedDeck) {
-                    console.log('Selected deck:', selectedDeck);
-                    // Here you would typically send the selection to the server
-                    alert(`Deck selected: ${selectedDeck}\nBoth players must confirm to start the game.`);
+                    confirmBtn.disabled = true;
+                    confirmBtn.classList.remove('enabled');
+                    statusText.textContent = 'Saved. Waiting for opponent to select...';
+
+                    try {
+                        const resp = await fetch(`/game/<%= gameId %>/deck-selection`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: new URLSearchParams({ selectedDeck })
+                        });
+                        // We rely on socket event to redirect when both are ready
+                    } catch (e) {
+                        console.error('Failed saving deck', e);
+                        statusText.textContent = 'Failed to save deck. Please try again.';
+                        confirmBtn.disabled = false;
+                        confirmBtn.classList.add('enabled');
+                    }
                 }
             });
         });

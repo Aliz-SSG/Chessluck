@@ -20,7 +20,8 @@
             </div>
             <div class="flex space-x-6">
                 <a href="/" class="hover:text-blue-400">Home</a>
-                <a href="/play" class="hover:text-blue-400">Play</a>
+                <form action="/game/play/<%= user.id %>" method="post" class="hover:text-blue-400 transition">
+                    <button>Play</button>
                 <a href="/learn" class="hover:text-blue-400">Learn</a>
                 <a href="/friends" class="hover:text-blue-400">Friends</a>
             </div>

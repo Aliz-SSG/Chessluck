@@ -1,61 +1,79 @@
+// gameController.js
 const User = require('../models/User');
-const Game = require('../models/Games.js')
-const isAuthenticatedUser = require('../middlewares/authMiddleware.js');
-const waitlist = require('../models/matchmaking.js')
-const decks = require('../models/decks.js')
+const Game = require('../models/Games.js');
+const waitlist = require('../models/matchmaking.js');
+const decks = require('../models/decks.js');
+const mongoose = require('mongoose');
+
+let io; // will hold Socket.IO instance
+
+exports.setIO = (socketIO) => {
+    io = socketIO;
+};
+
 exports.matchmaking = async (req, res) => {
     try {
-        const user1 = await User.findById(req.user.id)
+        const user1 = await User.findById(req.user.id);
+        if (!user1) {
+            req.flash("err_msg", "User not found");
+            return res.redirect("/");
+        }
+
         const waitingEntry = await waitlist.findOne();
+        console.log("🟨 WAITING ENTRY:", waitingEntry);
+        console.log("🟨 WAITING ENTRY.userID:", waitingEntry?.userID);
 
-
-        if (waitingEntry) {
+        if (waitingEntry && waitingEntry.userID) {
             const newGame = new Game({
                 player1: waitingEntry.userID,
-                player2: user1._id
+                player2: user1._id,
+                gameID: new mongoose.Types.ObjectId().toString(),
+                state: "deck-selection"
             });
+
             await newGame.save();
             await waitlist.deleteOne({ _id: waitingEntry._id });
 
+            io?.to(waitingEntry.userID.toString())?.emit("goToDeckSelection", { gameId: newGame._id });
+            io?.to(user1._id.toString())?.emit("goToDeckSelection", { gameId: newGame._id });
 
-            req.flash('success_msg', 'match starting')
+            req.flash("success_msg", "Match found! Redirecting...");
             res.redirect(`/game/${newGame._id}/deck-selection`);
-
-        }
-        else {
-            const newEntry = new waitlist({
-                userID: user1.id,
-            });
-
+        } else {
+            const newEntry = new waitlist({ userID: user1._id });
             await newEntry.save();
-            req.flash('success_msg', 'plz wait for the match to start')
-            res.redirect('/game/waiting')
 
+            req.flash("success_msg", "Please wait for a match...");
+            res.render("waiting", { userId: user1._id });
         }
+    } catch (err) {
+        console.error("🔥 Matchmaking error:", err);
+        req.flash("err_msg", "ERROR " + err.message);
+        res.redirect("/");
+    }
+};
 
-    }
-    catch (err) {
-        req.flash('err_msg', 'ERROR' + err)
-        res.redirect('/')
-    }
-}
 exports.deckselection = async (req, res) => {
     try {
-        const randomDecks = await decks.aggregate([
-            { $sample: { size: 3 } }
-        ]);
-        res.render("deck-selection", { decks: randomDecks })
+        const { gameId } = req.params;
+        const randomDecks = await decks.aggregate([{ $sample: { size: 3 } }]);
+        res.render("deckSelection", { decks: randomDecks, gameId, currentUserId: req.user._id });
+    } catch (err) {
+        req.flash('err_msg', 'ERROR ' + err);
+        res.redirect('/');
     }
-    catch (err) {
-        req.flash('err_msg', 'ERROR' + err)
-        res.redirect('/')
-    }
-}
+};
+
 exports.savingdeck = async (req, res) => {
     try {
         const { gameId } = req.params;
-        const { selectedDeck } = req.body
+        const { selectedDeck } = req.body;
         const game = await Game.findById(gameId);
+
+        if (!game) {
+            req.flash('err_msg', 'Game not found');
+            return res.redirect('/');
+        }
 
         if (game.player1.toString() === req.user.id.toString()) {
             game.player1Deck = selectedDeck;
@@ -64,17 +82,21 @@ exports.savingdeck = async (req, res) => {
         }
         await game.save();
 
-        req.flash('success_msg', 'Deck selected successfully!');
-        res.redirect(`/game/${game._id}`);
+        if (game.player1Deck && game.player2Deck) {
+            io?.to(game.player1.toString())?.emit("bothDecksSelected", { gameId: game._id });
+            io?.to(game.player2.toString())?.emit("bothDecksSelected", { gameId: game._id });
+            req.flash('success_msg', 'Both players selected decks. Starting game...');
+            return res.redirect(`/game/${game._id}`);
+        }
 
+        req.flash('success_msg', 'Deck selected. Waiting for opponent...');
+        return res.redirect(`/game/${game._id}/deck-selection`);
+    } catch (err) {
+        req.flash('err_msg', 'ERROR ' + err);
+        res.redirect('/');
+    }
+};
 
-    }
-    catch (err) {
-        req.flash('err_msg', 'ERROR' + err)
-        res.redirect('/')
-    }
-}
-// in gameController.js, after saving deck
 exports.startGame = async (req, res) => {
     try {
         const { gameId } = req.params;
@@ -87,15 +109,7 @@ exports.startGame = async (req, res) => {
             return res.redirect(`/game/${gameId}/deck-selection`);
         }
 
-        // Combine fenRanks from both decks into one FEN
-        // Assuming fenRank is like standard FEN string but represents full board
-        // You may need custom merging logic if decks are partial positions
-        let initialFen = game.player1Deck.fenRank; // white side
-        // If you want black pieces to be from player2Deck, we can mirror / merge:
-        // (here assuming fenRank represents full rank of the board)
-        // For simplicity, we just let player1Deck be white, player2Deck be black
-        // chess.js expects standard FEN: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-
+        let initialFen = game.player1Deck.fenRank;
         game.boardState = initialFen;
         game.state = "playing";
         await game.save();
@@ -124,11 +138,16 @@ exports.gamePage = async (req, res) => {
             currentUserId: req.user._id,
             player1: game.player1,
             player2: game.player2,
-            initialFen: game.player1Deck?.fenRank || null,
-            moves: game.moves
+            initialFen: game.boardState || null,
+            moves: [],
+            chat: []
         });
     } catch (err) {
         req.flash('err_msg', 'ERROR' + err);
         res.redirect('/');
     }
-}
+};
+
+exports.waitingPage = (req, res) => {
+    res.render('waiting', { userId: req.user.id });
+};

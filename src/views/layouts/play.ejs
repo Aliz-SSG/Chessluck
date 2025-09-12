@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+  <%- include ('../partials/messages.ejs')-%>
 <head>
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Game — <%= gameId %></title>
@@ -149,10 +151,10 @@
     /* ====== client-side dynamic values from server ====== */
     const gameId = "<%= gameId %>";
     const currentUserId = "<%= currentUserId %>";
-    const player1 = "<%- JSON.stringify(player1 || {}) %>";
-    const player2 = "<%- JSON.stringify(player2 || {}) %>";
-    let initialFen = "<%- JSON.stringify(initialFen || null) %>";
-    const initialMoves = "<%- JSON.stringify(moves || []) %>";
+    const player1 = <%- JSON.stringify(player1 || {}) %>;
+    const player2 = <%- JSON.stringify(player2 || {}) %>;
+    let initialFen = <%- JSON.stringify(initialFen || null) %>;
+    const initialMoves = <%- JSON.stringify(moves || []) %>;
 
     // determine orientation (which color current user plays)
     const amWhite = (currentUserId == player1._id);
@@ -260,6 +262,9 @@
     socket.on('connect', () => {
       // join the game room
       socket.emit('joinGame', { gameId, userId: currentUserId });
+      // also join private chat room with opponent so you receive messages
+      const opponentId = (currentUserId == player1._id) ? player2._id : player1._id;
+      socket.emit('joinChat', { currentUserId, friendId: opponentId });
       document.getElementById('statusText').textContent = 'Connected — waiting for opponent / server';
     });
 
