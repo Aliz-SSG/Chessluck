@@ -114,7 +114,7 @@
                 </div>
 
                 <div class="hidden md:flex space-x-6">
-                    <a href="http://localhost:5000/" class="hover:text-blue-400 transition">Home</a>
+                   
                     <form action="/game/play/<%= user.id %>" method="post" class="hover:text-blue-400 transition">
                       <button>Play</button>
                     </form>
@@ -139,53 +139,83 @@
         <!-- Main Content -->
         <main class="flex-1 p-6 overflow-y-auto">
             <div class="flex justify-between items-center mb-6">
-              <h2 class="text-2xl font-bold">Welcome back, <%= user.username %></h2>
+              <h2 class="text-2xl font-bold ">Welcome back <span class="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent"><%= user.username %></span></h2>
               <div class="flex space-x-3">
-                <button
-                  class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition">
-                  <i class="fas fa-plus"></i>
-                  <span>New Game</span>
-                </button>
-                <button
+                <form action="/game/play/<%= user._id %>" method="post">
+                  <button type="submit"
+                    class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg flex items-center space-x-2 transition">
+                    <i class="fas fa-plus"></i>
+                    <span>New Game</span>
+                  </button>
+                <!-- </form>
+                <a href="/user/profile"
                   class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg flex items-center space-x-2 transition">
-                  <i class="fas fa-search"></i>
-                  <span>Find Opponent</span>
-                </button>
+                  <i class="fas fa-user"></i>
+                  <span>Profile</span>
+                </a> -->
               </div>
             </div>
           
             <!-- Stats Cards -->
-            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <div class="bg-gradient-to-r from-green-600 to-green-700 p-6 rounded-xl text-white">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-green-100 text-sm">Wins</p>
+                    <p class="text-3xl font-bold"><%= user.wins %></p>
+                  </div>
+                  <i class="fas fa-trophy text-3xl opacity-80"></i>
+                </div>
+              </div>
+              
+              <div class="bg-gradient-to-r from-red-600 to-red-700 p-6 rounded-xl text-white">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-red-100 text-sm">Losses</p>
+                    <p class="text-3xl font-bold"><%= user.losses %></p>
+                  </div>
+                  <i class="fas fa-times-circle text-3xl opacity-80"></i>
+                </div>
+              </div>
+              
+              <div class="bg-gradient-to-r from-yellow-600 to-yellow-700 p-6 rounded-xl text-white">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-yellow-100 text-sm">Draws</p>
+                    <p class="text-3xl font-bold"><%= user.draws %></p>
+                  </div>
+                  <i class="fas fa-handshake text-3xl opacity-80"></i>
+                </div>
+              </div>
+              
+              <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl text-white">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-blue-100 text-sm">Win Rate</p>
+                    <p class="text-3xl font-bold"><%= user.winRate %>%</p>
+                  </div>
+                  <i class="fas fa-chart-line text-3xl opacity-80"></i>
+                </div>
+              </div>
+            </div>
+
           
-            <!-- Current Game -->
-            
-                  <!-- Board Placeholder -->
-                 
-                    <!-- Here you’d render the actual board -->
-                    
-          
-                  <!-- Players Info -->
-                  
-                    <!-- Move History -->
-                    
-                    <!-- Actions -->
-                    
-          
-            <!-- Recent Activity -->
             
             <script>
-                // In a real implementation, this would handle game state, moves, etc.
                 document.addEventListener('DOMContentLoaded', function () {
-                    // Example of interactive element
-                    const newGameBtn = document.querySelector('button:contains("New Game")');
-                    if (newGameBtn) {
-                        newGameBtn.addEventListener('click', function () {
-                            alert('Starting a new game! This would open a game creation modal in a real implementation.');
-                        });
-                    }
-
-                    // You would add more game-related JavaScript here
                     console.log('Chess dashboard loaded');
+                    
+                    // Add some interactive elements
+                    const statsCards = document.querySelectorAll('.bg-gradient-to-r');
+                    statsCards.forEach(card => {
+                        card.addEventListener('mouseenter', function() {
+                            this.style.transform = 'translateY(-2px)';
+                            this.style.transition = 'transform 0.2s ease';
+                        });
+                        card.addEventListener('mouseleave', function() {
+                            this.style.transform = 'translateY(0)';
+                        });
+                    });
                 });
             </script>
     </body>

@@ -256,10 +256,16 @@
         board.position(chess.fen());
       }
     };
+    // ensure piece images load from a CDN instead of local default path
+    boardConfig.pieceTheme = function(piece){
+      return 'https://cdnjs.cloudflare.com/ajax/libs/chessboardjs/1.0.0/img/chesspieces/wikipedia/' + piece + '.png';
+    };
     const board = Chessboard('board', boardConfig);
 
     /* ====== Socket events ====== */
     socket.on('connect', () => {
+      // register this user's private room for targeted emits (e.g., matchmaking/deck events)
+      socket.emit('registerUser', currentUserId);
       // join the game room
       socket.emit('joinGame', { gameId, userId: currentUserId });
       // also join private chat room with opponent so you receive messages

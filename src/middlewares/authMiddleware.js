@@ -6,7 +6,7 @@ async function isAuthenticatedUser(req, res, next) {
             const now = Date.now();
             const lastActive = req.user.lastActive ? new Date(req.user.lastActive).getTime() : 0;
 
-            // Update lastActive only if more than 1 minute has passed
+
             if (!req.user.lastActive || (now - lastActive) > 60000) {
                 await User.findByIdAndUpdate(req.user._id, { $set: { lastActive: new Date() } });
             }
@@ -25,7 +25,7 @@ function getUserStatus(user) {
     if (!user.lastActive) return "offline";
 
     const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
-    return user.lastActive > fiveMinutesAgo ? "online" : "offline";
+    return new Date(user.lastActive).getTime() > fiveMinutesAgo ? "online" : "offline";
 }
 
 module.exports = { isAuthenticatedUser, getUserStatus };

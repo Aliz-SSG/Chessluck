@@ -26,9 +26,16 @@ const userSchema = new mongoose.Schema({
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     status: { type: String, enum: ["online", "offline"], default: "offline" },
     lastActive: { type: Date, default: Date.now },
+
     wins: { type: Number, default: 0 },
     losses: { type: Number, default: 0 },
     draws: { type: Number, default: 0 },
+
+});
+userSchema.virtual('winRate').get(function () {
+    const totalGames = this.wins + this.losses + this.draws;
+    if (totalGames === 0) return 0;
+    return (this.wins / totalGames) * 100;
 });
 
 userSchema.plugin(passportLocalMongoose);

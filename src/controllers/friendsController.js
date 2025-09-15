@@ -4,9 +4,11 @@ exports.ShowFriendsList = async (req, res) => {
     try {
         const user = await User.findById(req.user.id).populate("friends", "username email lastActive status");
         const friendsWithStatus = user.friends.map(friend => ({
-            ...friend.toObject(), status: isAuthenticatedUser.getUserStatus(friend)
-        }))
-        res.render('friends', { friends: friendsWithStatus, searchResults: null, currentUser: req.user, user: req.user });
+            ...friend.toObject(),
+            status: isAuthenticatedUser.getUserStatus(friend) // dynamically calculated
+        }));
+
+        res.render('friends', { friends: friendsWithStatus, searchResults: null, currentUser: req.user, });
     }
     catch (err) {
         req.flash("err_msg", "ERROR: " + err.message);

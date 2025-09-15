@@ -1,4 +1,4 @@
-const { User } = require('../models/User');
+const User = require('../models/User');
 const crypto = require('crypto');
 const async = require('async');
 const { recoverypassword, passwordchanged } = require('../utils/email');

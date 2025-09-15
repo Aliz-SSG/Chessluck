@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+  <%- include ('../partials/messages.ejs')-%>
 <head>
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Game — <%= gameId %></title>
 
   <!-- Tailwind (play CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" type="image/x-icon" href="/images/faveicon.ico">
 
   <!-- icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
@@ -16,11 +19,11 @@
 
   <style>
     :root{
-      --bg-900:#0b1220;
+      --bg-900:#111827;
       --muted:#94a3b8;
       --accent:#60A5FA;
     }
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg-900),#07101a);color:#e6eef8;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg-900),#111827);color:#e6eef8;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
     /* dynamic background effect */
     .bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;mix-blend-mode:screen;opacity:0.18}
     .bg-gradient{position:absolute;inset:-10%  -10% ;background:linear-gradient(120deg, rgba(96,165,250,0.14), rgba(59,130,246,0.08) 40%, rgba(148,163,184,0.04));filter:blur(40px);transform:translateZ(0);animation:shift 14s linear infinite}
@@ -148,10 +151,10 @@
     /* ====== client-side dynamic values from server ====== */
     const gameId = "<%= gameId %>";
     const currentUserId = "<%= currentUserId %>";
-    const player1 = <%- JSON.stringify(player1 || {}) %>;
-    const player2 = <%- JSON.stringify(player2 || {}) %>;
-    let initialFen = <%- JSON.stringify(initialFen || null) %>;
-    const initialMoves = <%- JSON.stringify(moves || []) %>;
+    const player1 = "<%- JSON.stringify(player1 || {}) %>";
+    const player2 = "<%- JSON.stringify(player2 || {}) %>";
+    let initialFen = "<%- JSON.stringify(initialFen || null) %>";
+    const initialMoves = "<%- JSON.stringify(moves || []) %>";
 
     // determine orientation (which color current user plays)
     const amWhite = (currentUserId == player1._id);
@@ -259,6 +262,9 @@
     socket.on('connect', () => {
       // join the game room
       socket.emit('joinGame', { gameId, userId: currentUserId });
+      // also join private chat room with opponent so you receive messages
+      const opponentId = (currentUserId == player1._id) ? player2._id : player1._id;
+      socket.emit('joinChat', { currentUserId, friendId: opponentId });
       document.getElementById('statusText').textContent = 'Connected — waiting for opponent / server';
     });
 

@@ -90,7 +90,7 @@ exports.savingdeck = async (req, res) => {
         }
 
         req.flash('success_msg', 'Deck selected. Waiting for opponent...');
-        return res.redirect(`/game/${game._id}/deck-selection`);
+        return res.redirect(`/game/${game._id}/start`);
     } catch (err) {
         req.flash('err_msg', 'ERROR ' + err);
         res.redirect('/');
