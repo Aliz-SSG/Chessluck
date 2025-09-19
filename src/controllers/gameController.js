@@ -1,4 +1,4 @@
-// gameController.js
+
 const User = require('../models/User');
 const Game = require('../models/Games.js');
 const waitlist = require('../models/matchmaking.js');
@@ -96,7 +96,15 @@ exports.savingdeck = async (req, res) => {
         res.redirect('/');
     }
 };
-
+function mergeDeckFEN(whiteFEN, blackFEN) {
+    const whiteRows = whiteFEN.split(" ")[0].split("/");
+    const blackRows = blackFEN.split(" ")[0].split("/");
+    const mergedRows = whiteRows.map((row, i) => {
+        if (blackRows[i]) return row.replace(/8/, blackRows[i]);
+        return row;
+    });
+    return mergedRows.join("/") + " w KQkq - 0 1";
+}
 exports.startGame = async (req, res) => {
     try {
         const { gameId } = req.params;
@@ -109,8 +117,9 @@ exports.startGame = async (req, res) => {
             return res.redirect(`/game/${gameId}/deck-selection`);
         }
 
-        let initialFen = game.player1Deck.fenRank;
+        const initialFen = mergeDeckFEN(game.player1Deck.fenRank, game.player2Deck.fenRank);
         game.boardState = initialFen;
+        game.turn = "white";
         game.state = "playing";
         await game.save();
 

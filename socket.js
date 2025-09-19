@@ -58,12 +58,15 @@ function initSocket(server) {
                 function mergeDeckFEN(whiteFEN, blackFEN) {
                     const whiteRows = whiteFEN.split(" ")[0].split("/");
                     const blackRows = blackFEN.split(" ")[0].split("/");
-                    const mergedRows = whiteRows.map((row, i) => {
-                        if (blackRows[i]) return row.replace(/8/, blackRows[i]);
-                        return row;
-                    });
-                    return mergedRows.join("/") + " w KQkq - 0 1";
+
+                    return whiteRows.map((row, i) => {
+                        const wRow = row.split("");
+                        const bRow = blackRows[i] ? blackRows[i].split("") : [];
+                        // If a square is empty in white’s row but filled in black’s, use black’s piece
+                        return wRow.map((c, j) => (c === "1" && bRow[j] && bRow[j] !== "1") ? bRow[j] : c).join("");
+                    }).join("/") + " w KQkq - 0 1";
                 }
+
 
                 if (!game.boardState && game.player1Deck && game.player2Deck) {
                     game.boardState = mergeDeckFEN(game.player1Deck.fenRank, game.player2Deck.fenRank);
@@ -79,7 +82,7 @@ function initSocket(server) {
         });
 
         /* ===== GAMEPLAY ===== */
-        socket.on("playerMove", async ({ gameId, from, to }) => {
+        socket.on("playerMove", async ({ gameId, from, to, fen }) => {
             try {
                 const game = await Game.findById(gameId);
                 if (!game) return;
@@ -98,13 +101,14 @@ function initSocket(server) {
                 game.moves.push({ from, to, piece: move.piece });
                 await game.save();
 
-                io.to(gameId).emit("moveMade", {
+                socket.to(gameId).emit("moveMade", {
                     from,
                     to,
-                    move,
                     fen: chess.fen(),
                     turn: game.turn
                 });
+
+
 
                 // End game check
                 if (chess.isGameOver()) {

@@ -2,20 +2,16 @@
 <html lang="en">
   <%- include ('../partials/messages.ejs')-%>
 <head>
-
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Game — <%= gameId %></title>
 
-  <!-- Tailwind (play CDN) -->
+  <!-- Tailwind (play CDN, fine for dev) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" type="image/x-icon" href="/images/faveicon.ico">
-
+  
   <!-- icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-
-  <!-- chessboard.js CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"/>
 
   <style>
     :root{
@@ -24,13 +20,10 @@
       --accent:#60A5FA;
     }
     html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg-900),#07101a);color:#e6eef8;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    /* dynamic background effect */
     .bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;mix-blend-mode:screen;opacity:0.18}
     .bg-gradient{position:absolute;inset:-10%  -10% ;background:linear-gradient(120deg, rgba(96,165,250,0.14), rgba(59,130,246,0.08) 40%, rgba(148,163,184,0.04));filter:blur(40px);transform:translateZ(0);animation:shift 14s linear infinite}
     @keyframes shift{0%{transform:translate(-6%,-3%)}50%{transform:translate(6%,3%)}100%{transform:translate(-6%,-3%)}}
     #particles{position:absolute;inset:0;z-index:1}
-
-    /* layout */
     .app{position:relative;z-index:2;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:28px;box-sizing:border-box}
     .container{width:1140px;max-width:95%;display:grid;grid-template-columns:640px 1fr;gap:20px}
     .panel{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);backdrop-filter:blur(6px);border-radius:12px;padding:14px;box-shadow:0 6px 20px rgba(2,6,23,0.6)}
@@ -41,8 +34,8 @@
     @media (max-width:1000px){.container{grid-template-columns:1fr}#board{width:90vw;height:90vw}}
   </style>
 </head>
+
 <body>
-  <!-- dynamic background -->
   <div class="bg-layer" aria-hidden="true">
     <div class="bg-gradient"></div>
     <canvas id="particles"></canvas>
@@ -142,224 +135,84 @@
     </div>
   </div>
 
-  <!-- libs -->
   <script src="/socket.io/socket.io.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.0.0/chess.min.js"></script>
-  <script src="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+  <script src="/js/chess.js"></script>
+  <script src="/js/chessboard.js"></script>
 
+
+  
   <script>
-    /* ====== client-side dynamic values from server ====== */
-    const gameId = "<%= gameId %>";
-    const currentUserId = "<%= currentUserId %>";
-    const player1 = <%- JSON.stringify(player1 || {}) %>;
-    const player2 = <%- JSON.stringify(player2 || {}) %>;
-    let initialFen = <%- JSON.stringify(initialFen || null) %>;
-    const initialMoves = <%- JSON.stringify(moves || []) %>;
-
-    // determine orientation (which color current user plays)
-    const amWhite = (currentUserId == player1._id);
+    window.GAME_DATA = {
+      gameId: "<%= gameId %>",
+      currentUserId: "<%= currentUserId %>",
+      player1: <%- JSON.stringify(player1 || {}) %>,
+      player2: <%- JSON.stringify(player2 || {}) %>,
+      initialFen: <%- JSON.stringify(initialFen || null) %>,
+      initialMoves: <%- JSON.stringify(moves || []) %>
+    };
+  
+    const { gameId, currentUserId, player1, player2, initialFen, initialMoves } = window.GAME_DATA;
+    const amWhite = currentUserId == player1._id;
     const orientation = amWhite ? 'white' : 'black';
-
-    /* ====== basic particle background (lightweight) ====== */
-    (function particleInit(){
-      const canvas = document.getElementById('particles');
-      if(!canvas) return;
-      const ctx = canvas.getContext('2d');
-      let w = canvas.width = innerWidth, h = canvas.height = innerHeight;
-      const particles = [];
-      const count = Math.min(80, Math.floor((w*h)/90000));
-      function rand(a,b){return Math.random()*(b-a)+a}
-      for(let i=0;i<count;i++){
-        particles.push({x:rand(0,w),y:rand(0,h),r:rand(0.6,2.4),vx:rand(-0.2,0.2),vy:rand(-0.1,0.1),a:rand(0.05,0.2)});
-      }
-      function frame(){
-        ctx.clearRect(0,0,w,h);
-        for(const p of particles){
-          p.x += p.vx; p.y += p.vy;
-          if(p.x < -10) p.x = w+10; if(p.x > w+10) p.x = -10;
-          if(p.y < -20) p.y = h+20; if(p.y > h+20) p.y = -20;
-          ctx.beginPath(); ctx.fillStyle = `rgba(96,165,250,${p.a})`;
-          ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
-        }
-        requestAnimationFrame(frame);
-      }
-      addEventListener('resize', ()=>{ w=canvas.width=innerWidth; h=canvas.height=innerHeight; });
-      frame();
-    })();
-
-    /* ====== chess + board setup ====== */
-    const socket = io(); // connect to server
-    const chess = new Chess(); // chess.js
-    // if server provided an initial FEN, load it now
-    if(initialFen && initialFen.length){
-      try{ chess.load(initialFen); }catch(e){ console.warn('invalid initialFen', e); chess.reset(); }
+  
+    const socket = io();
+    const chess = new Chess();
+  
+    if (initialFen && initialFen.length) {
+      try { chess.load(initialFen); } 
+      catch (e) { console.warn('invalid initialFen', e); chess.reset(); }
     } else {
       chess.reset();
     }
-
-    // export for debugging
     window.__chess = chess;
-
-    // build move array client-side
-    const clientMoves = Array.from(initialMoves); // e.g. ["e4","e5","Nf3","Nc6"]
-
-    // render initial moves already done by EJS, but keep a function to append new ones
+  
+    const clientMoves = Array.from(initialMoves);
+  
     function appendMoveSAN(san) {
       clientMoves.push(san);
-      // re-render moves area: keep simple - append the latest pair or create new row
       const movesEl = document.getElementById('moves');
-      // determine move index
       const idx = clientMoves.length - 1;
       if (idx % 2 === 0) {
-        // new row with white move
         const row = document.createElement('div'); row.className = 'move-row';
-        const num = document.createElement('div'); num.className = 'move-number'; num.textContent = Math.floor(idx/2)+1 + '.';
+        const num = document.createElement('div'); num.className = 'move-number'; num.textContent = Math.floor(idx / 2) + 1 + '.';
         const wcell = document.createElement('div'); wcell.className = 'move-cell'; wcell.textContent = san;
         const bcell = document.createElement('div'); bcell.className = 'move-cell'; bcell.textContent = '';
         row.appendChild(num); row.appendChild(wcell); row.appendChild(bcell);
         movesEl.appendChild(row);
       } else {
-        // fill last row's black cell
         const rows = movesEl.querySelectorAll('.move-row');
-        if (rows.length) {
-          const lastRow = rows[rows.length - 1];
-          const cells = lastRow.querySelectorAll('.move-cell');
-          if (cells.length >= 2) cells[1].textContent = san;
-        }
+        if (rows.length) rows[rows.length - 1].querySelectorAll('.move-cell')[1].textContent = san;
       }
       movesEl.scrollTop = movesEl.scrollHeight;
     }
-
-    /* initialize chessboard.js */
+  
+    // Define config BEFORE creating the board
     const boardConfig = {
       draggable: true,
       position: chess.fen(),
       orientation: orientation,
-      onDragStart: (source, piece, position, orientation) => {
-        // prevent moving if not this player's turn
-        const turnColor = chess.turn() === 'w' ? 'white' : 'black';
-        if ((turnColor === 'white' && !amWhite) || (turnColor === 'black' && amWhite)) return false;
-        // prevent dragging opponent pieces
-        if ((amWhite && piece.search(/^b/) === 0) || (!amWhite && piece.search(/^w/) === 0)) return false;
+      onDragStart: (source, piece) => {
+        const turnColor = chess.turn() === 'w' ? 'w' : 'b';
+        if (turnColor !== (amWhite ? 'w' : 'b')) return false; // only allow move if your turn},
+
       },
-      onDrop: (source, target, piece, newPos, oldPos, orientation) => {
+      onDrop: (source, target) => {
         const move = chess.move({ from: source, to: target, promotion: 'q' });
-        if (move === null) {
-          return 'snapback';
-        }
-        // optimistic update already in chess, update board visually
+        if (move === null) return 'snapback';
         board.position(chess.fen());
-        // send move to server for authoritative validation & persistence
-        socket.emit('playerMove', { gameId, from: source, to: target });
+        socket.emit('playerMove', { gameId, from: source, to: target, fen: chess.fen() });
       },
-      onSnapEnd: () => {
-        board.position(chess.fen());
-      }
+      onSnapEnd: () => { board.position(chess.fen()); },
+      pieceTheme: function (piece) {
+        return 'https://cdnjs.cloudflare.com/ajax/libs/chessboardjs/1.0.0/img/chesspieces/wikipedia/' + piece.toLowerCase() + '.png';
+}
+
     };
-    // ensure piece images load from a CDN instead of local default path
-    boardConfig.pieceTheme = function(piece){
-      return 'https://cdnjs.cloudflare.com/ajax/libs/chessboardjs/1.0.0/img/chesspieces/wikipedia/' + piece + '.png';
-    };
+  
+    // NOW create the board
     const board = Chessboard('board', boardConfig);
-
-    /* ====== Socket events ====== */
-    socket.on('connect', () => {
-      // register this user's private room for targeted emits (e.g., matchmaking/deck events)
-      socket.emit('registerUser', currentUserId);
-      // join the game room
-      socket.emit('joinGame', { gameId, userId: currentUserId });
-      // also join private chat room with opponent so you receive messages
-      const opponentId = (currentUserId == player1._id) ? player2._id : player1._id;
-      socket.emit('joinChat', { currentUserId, friendId: opponentId });
-      document.getElementById('statusText').textContent = 'Connected — waiting for opponent / server';
-    });
-
-    socket.on('initBoard', ({ fen, turn }) => {
-      if (fen) {
-        chess.load(fen);
-        board.position(chess.fen());
-      }
-      document.getElementById('statusText').textContent = `Turn: ${turn}`;
-    });
-
-    socket.on('moveMade', ({ from, to, move, fen, turn }) => {
-      // server is authoritative — load fen and update board
-      if (fen) {
-        chess.load(fen);
-        board.position(fen);
-      } else {
-        // fallback: apply move object
-        if (move && move.san) appendMoveSAN(move.san);
-      }
-      // append SAN if provided
-      if (move && move.san) appendMoveSAN(move.san);
-      document.getElementById('statusText').textContent = `Turn: ${turn}`;
-    });
-
-    socket.on('invalidMove', ({ from, to }) => {
-      // server rejected move: revert
-      chess.undo();
-      board.position(chess.fen());
-      alert(`Invalid move ${from} → ${to}`);
-    });
-
-    socket.on('gameEnded', ({ reason, winner }) => {
-      const status = document.getElementById('statusText');
-      if (winner) {
-        const youWin = (winner === currentUserId);
-        status.textContent = youWin ? `You won (${reason})` : `Opponent won (${reason})`;
-      } else {
-        status.textContent = `Game ended: ${reason}`;
-      }
-      // disable dragging by replacing board with static position
-      boardConfig['draggable'] = false;
-    });
-
-    /* ====== Chat ====== */
-    // helper: determine opponent id
-    const opponentId = (currentUserId == player1._id) ? player2._id : player1._id;
-
-    document.getElementById('sendChatBtn').addEventListener('click', () => {
-      const text = document.getElementById('chatInput').value.trim();
-      if (!text) return;
-      // emit server chat room (your server's chat handler expects senderId & receiverId)
-      socket.emit('chatMessage', { senderId: currentUserId, receiverId: opponentId, text });
-      // append locally for immediate feedback
-      const chatWindow = document.getElementById('chatWindow');
-      const div = document.createElement('div'); div.className = 'text-right';
-      div.innerHTML = `<span class="inline-block bg-gray-800 px-3 py-1 rounded">${text}</span>`;
-      chatWindow.appendChild(div);
-      chatWindow.scrollTop = chatWindow.scrollHeight;
-      document.getElementById('chatInput').value = '';
-    });
-
-    socket.on('chatMessage', (msg) => {
-      // server emits chatMessage into the chat room (your server does for private chats)
-      // msg: { text, time, senderId }
-      const chatWindow = document.getElementById('chatWindow');
-      const side = (msg.senderId === currentUserId) ? 'text-right' : 'text-left';
-      const div = document.createElement('div'); div.className = side;
-      div.innerHTML = `<span class="inline-block bg-gray-800 px-3 py-1 rounded">${msg.text}</span>`;
-      chatWindow.appendChild(div);
-      chatWindow.scrollTop = chatWindow.scrollHeight;
-    });
-
-    /* ====== Resign button ====== */
-    document.getElementById('resignBtn').addEventListener('click', () => {
-      if (!confirm('Are you sure you want to resign?')) return;
-      socket.emit('resign', { gameId, playerId: currentUserId });
-    });
-
-    /* ====== initial moves array -> if server passed SAN moves initially, ensure they are in clientMoves already ====== */
-    // initialMoves were rendered by EJS into the DOM. Keep the clientMoves in sync by scanning rendered DOM on load (optional)
-    // (we already used server-rendered moves in the EJS markup)
-
-    /* ========= helper to add SAN when server sends move.san ========= */
-    // (moveMade handler already calls appendMoveSAN when move.san exists)
-
-    // expose some debug hooks
-    window._chessBoard = board;
-    window._chess = chess;
   </script>
+  
+
 </body>
 </html>
