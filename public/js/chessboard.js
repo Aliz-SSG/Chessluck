@@ -1,4 +1,4 @@
-// Lightweight UI board. API:
+// Lightweight UI board. API: 
 // const board = Chessboard('boardId', config);
 // board.position(fen)  -> set board position (fen string)
 // config: { draggable, position, orientation, onDragStart, onDrop, onSnapEnd, pieceTheme }
@@ -11,7 +11,8 @@ function Chessboard(containerId, config = {}) {
         orientation: config.orientation || 'white',
         selected: null,
         cfg: config,
-        currentFen: null
+        currentFen: null,
+        dragging: null
     };
 
     // create board DOM
@@ -29,9 +30,10 @@ function Chessboard(containerId, config = {}) {
     // styles
     const style = document.createElement('style');
     style.innerHTML = `
-      .cc-board {border-radius:8px; overflow:hidden; touch-action:none;}
+      .cc-board {border-radius:8px; overflow:hidden; touch-action:none; position:relative;}
       .cc-square {position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; user-select:none;}
-      .cc-piece {width:80%; height:80%; touch-action:none; cursor:grab; pointer-events:auto;}
+      .cc-piece {width:80%; height:80%; touch-action:none; cursor:grab; pointer-events:auto; position:relative; z-index:2;}
+      .cc-piece.dragging {cursor:grabbing; opacity:0.7; position:absolute; z-index:5; pointer-events:none;}
       .cc-square.light{background:rgba(255,255,255,0.02);}
       .cc-square.dark{background:rgba(0,0,0,0.12);}
       .cc-square.selected{outline:3px solid rgba(96,165,250,0.25); border-radius:6px;}
@@ -51,6 +53,8 @@ function Chessboard(containerId, config = {}) {
     const squareEls = {};
     function renderEmptyBoard() {
         boardEl.innerHTML = '';
+        // reset mapping
+        Object.keys(squareEls).forEach(k => { delete squareEls[k]; });
         const sqs = getSquares(state.orientation);
         for (let i = 0; i < sqs.length; i++) {
             const sq = sqs[i];
@@ -62,7 +66,6 @@ function Chessboard(containerId, config = {}) {
             el.classList.add(isLight ? 'light' : 'dark');
             el.dataset.square = sq;
             el.style.aspectRatio = '1/1';
-            el.addEventListener('click', onSquareClick);
             squareEls[sq] = el;
             boardEl.appendChild(el);
         }
@@ -86,28 +89,39 @@ function Chessboard(containerId, config = {}) {
         state.currentFen = fen;
         const placement = fen.split(/\s+/)[0];
         const rows = placement.split('/');
-        const rankOrder = state.orientation === 'white' ? [8, 7, 6, 5, 4, 3, 2, 1] : [1, 2, 3, 4, 5, 6, 7, 8];
         clearPieces();
         for (let r = 0; r < 8; r++) {
-            const rank = rankOrder[r];
+            const rank = 8 - r;
             let fileIndex = 0;
             for (const ch of rows[r]) {
                 if (/\d/.test(ch)) {
                     fileIndex += Number(ch);
                 } else {
-                    const f = (state.orientation === 'white') ? files[fileIndex] : files.slice().reverse()[fileIndex];
-                    const sq = f + rank;
+                    const fileLetter = files[fileIndex];
+                    const sq = fileLetter + rank;
                     const pieceId = fenCharToPieceId(ch);
                     if (pieceId) {
                         const img = document.createElement('img');
                         img.draggable = false;
                         img.className = 'cc-piece';
-                        const src = (typeof state.cfg.pieceTheme === 'function')
+                        const primarySrc = (typeof state.cfg.pieceTheme === 'function')
                             ? state.cfg.pieceTheme(pieceId)
                             : `https://cdnjs.cloudflare.com/ajax/libs/chessboardjs/1.0.0/img/chesspieces/wikipedia/${pieceId}.png`;
-                        img.src = src;
+                        let triedFallback = false;
+                        img.onerror = () => {
+                            if (triedFallback) return;
+                            triedFallback = true;
+                            img.src = `https://chessboardjs.com/img/chesspieces/wikipedia/${pieceId}.png`;
+                        };
+                        img.src = primarySrc;
                         img.dataset.piece = pieceId;
                         img.dataset.from = sq;
+
+                        // drag listeners
+                        if (state.cfg.draggable) {
+                            img.addEventListener('mousedown', onDragStartMouse);
+                        }
+
                         squareEls[sq].appendChild(img);
                     }
                     fileIndex++;
@@ -122,39 +136,86 @@ function Chessboard(containerId, config = {}) {
         return el.querySelector('.cc-piece');
     }
 
-    function onSquareClick(e) {
-        const sq = e.currentTarget.dataset.square;
-        const pieceEl = topPieceEl(sq);
-        if (!state.selected) {
-            if (!pieceEl) return;
-            if (typeof state.cfg.onDragStart === 'function') {
-                const cancelled = state.cfg.onDragStart(sq, pieceEl.dataset.piece);
-                if (cancelled === false) return;
-            }
-            state.selected = sq;
-            squareEls[sq].classList.add('selected');
-        } else {
-            const from = state.selected;
-            const to = sq;
-            squareEls[from].classList.remove('selected');
-            const pieceElFrom = topPieceEl(from);
-            let result;
-            if (typeof state.cfg.onDrop === 'function') {
-                result = state.cfg.onDrop(from, to, pieceElFrom ? pieceElFrom.dataset.piece : null);
-            }
-            if (result !== 'snapback' && result !== false && pieceElFrom) {
-                const clone = pieceElFrom.cloneNode(true);
-                pieceElFrom.remove();
-                const tgt = topPieceEl(to);
-                if (tgt) tgt.remove();
-                squareEls[to].appendChild(clone);
-                clone.dataset.from = to;
-            }
-            state.selected = null;
-            if (typeof state.cfg.onSnapEnd === 'function') {
-                state.cfg.onSnapEnd();
-            }
+    // --- Dragging handlers ---
+    function onDragStartMouse(e) {
+        const pieceEl = e.target;
+        const from = pieceEl.dataset.from;
+        if (typeof state.cfg.onDragStart === 'function') {
+            const cancelled = state.cfg.onDragStart(from, pieceEl.dataset.piece);
+            if (cancelled === false) return;
         }
+        // Fix the visual size by freezing current pixel size before moving out of square
+        const preRect = pieceEl.getBoundingClientRect();
+        pieceEl.style.width = preRect.width + 'px';
+        pieceEl.style.height = preRect.height + 'px';
+        state.dragging = { pieceEl, from, originalParent: pieceEl.parentElement };
+        pieceEl.classList.add('dragging');
+        // Move piece into board layer so absolute coords are relative to board
+        boardEl.appendChild(pieceEl);
+        movePieceWithMouse(e);
+        document.addEventListener('mousemove', onDraggingMouse);
+        document.addEventListener('mouseup', onDragEndMouse);
+    }
+
+    function onDraggingMouse(e) {
+        if (!state.dragging) return;
+        movePieceWithMouse(e);
+    }
+
+    function movePieceWithMouse(e) {
+        const { pieceEl } = state.dragging;
+        const rect = boardEl.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        pieceEl.style.left = `${x - pieceEl.offsetWidth / 2}px`;
+        pieceEl.style.top = `${y - pieceEl.offsetHeight / 2}px`;
+    }
+
+    function onDragEndMouse(e) {
+        if (!state.dragging) return;
+        const { pieceEl, from } = state.dragging;
+        pieceEl.classList.remove('dragging');
+        pieceEl.style.left = '';
+        pieceEl.style.top = '';
+        document.removeEventListener('mousemove', onDraggingMouse);
+        document.removeEventListener('mouseup', onDragEndMouse);
+
+        // find drop square
+        const rect = boardEl.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const col = Math.floor((x / rect.width) * 8);
+        const row = Math.floor((y / rect.height) * 8);
+        const rankOrder = state.orientation === 'white' ? [8, 7, 6, 5, 4, 3, 2, 1] : [1, 2, 3, 4, 5, 6, 7, 8];
+        const fileOrder = state.orientation === 'white' ? files : files.slice().reverse();
+        const to = fileOrder[col] + rankOrder[row];
+
+        let result;
+        if (typeof state.cfg.onDrop === 'function') {
+            result = state.cfg.onDrop(from, to, pieceEl.dataset.piece);
+        }
+
+        if (result !== 'snapback' && result !== false) {
+            // valid drop
+            const tgt = topPieceEl(to);
+            if (tgt) tgt.remove();
+            squareEls[to].appendChild(pieceEl);
+            pieceEl.dataset.from = to;
+        } else {
+            // snap back
+            squareEls[from].appendChild(pieceEl);
+            pieceEl.dataset.from = from;
+        }
+
+        // Restore responsive sizing managed by CSS inside squares
+        pieceEl.style.width = '';
+        pieceEl.style.height = '';
+
+        if (typeof state.cfg.onSnapEnd === 'function') {
+            state.cfg.onSnapEnd();
+        }
+
+        state.dragging = null;
     }
 
     const api = {

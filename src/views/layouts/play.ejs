@@ -6,28 +6,21 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Game — <%= gameId %></title>
 
-  <!-- Tailwind (play CDN, fine for dev) -->
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" type="image/x-icon" href="/images/faveicon.ico">
-  
-  <!-- icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
   <style>
-    :root{
-      --bg-900:#0b1220;
-      --muted:#94a3b8;
-      --accent:#60A5FA;
-    }
+    :root{--bg-900:#0b1220;--muted:#94a3b8;--accent:#60A5FA;}
     html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg-900),#07101a);color:#e6eef8;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
     .bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;mix-blend-mode:screen;opacity:0.18}
-    .bg-gradient{position:absolute;inset:-10%  -10% ;background:linear-gradient(120deg, rgba(96,165,250,0.14), rgba(59,130,246,0.08) 40%, rgba(148,163,184,0.04));filter:blur(40px);transform:translateZ(0);animation:shift 14s linear infinite}
+    .bg-gradient{position:absolute;inset:-10% -10%;background:linear-gradient(120deg,rgba(96,165,250,0.14),rgba(59,130,246,0.08) 40%,rgba(148,163,184,0.04));filter:blur(40px);animation:shift 14s linear infinite}
     @keyframes shift{0%{transform:translate(-6%,-3%)}50%{transform:translate(6%,3%)}100%{transform:translate(-6%,-3%)}}
-    #particles{position:absolute;inset:0;z-index:1}
     .app{position:relative;z-index:2;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:28px;box-sizing:border-box}
     .container{width:1140px;max-width:95%;display:grid;grid-template-columns:640px 1fr;gap:20px}
     .panel{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);backdrop-filter:blur(6px);border-radius:12px;padding:14px;box-shadow:0 6px 20px rgba(2,6,23,0.6)}
-    #board { width:600px; height:600px; border-radius:10px; overflow:hidden; background:linear-gradient(180deg,#0f1724,#07101a); box-shadow:0 10px 30px rgba(2,6,23,0.7); }
+    #board{width:600px;height:600px;border-radius:10px;overflow:hidden;background:linear-gradient(180deg,#0f1724,#07101a);box-shadow:0 10px 30px rgba(2,6,23,0.7);}
     .move-row{display:flex;gap:8px;margin-bottom:6px;align-items:center}
     .move-number{color:var(--muted);width:30px;text-align:right}
     .move-cell{background:rgba(255,255,255,0.03);padding:8px 10px;border-radius:8px;color:#dbeafe;font-weight:600}
@@ -38,7 +31,6 @@
 <body>
   <div class="bg-layer" aria-hidden="true">
     <div class="bg-gradient"></div>
-    <canvas id="particles"></canvas>
   </div>
 
   <div class="app">
@@ -96,36 +88,14 @@
         <div class="panel">
           <div class="flex justify-between items-center mb-2">
             <div class="font-semibold">Move List</div>
-            <div class="text-sm text-gray-400">Auto-scroll</div>
           </div>
-          <div id="moves" class="overflow-y-auto max-h-72 pr-2">
-            <% if (moves && moves.length) { %>
-              <% for (let i = 0; i < moves.length; i += 2) { %>
-                <div class="move-row">
-                  <div class="move-number"><%= (i/2)+1 %>.</div>
-                  <div class="move-cell"><%= moves[i] %></div>
-                  <div class="move-cell"><%= moves[i+1] || '' %></div>
-                </div>
-              <% } %>
-            <% } else { %>
-              <div class="text-sm text-gray-400">No moves yet</div>
-            <% } %>
-          </div>
+          <div id="moves" class="overflow-y-auto max-h-72 pr-2"></div>
         </div>
 
         <!-- Chat -->
         <div class="panel flex flex-col">
           <div class="font-semibold mb-2">Chat</div>
-          <div id="chatWindow" class="flex-1 overflow-y-auto space-y-2 pb-2">
-            <% if (chat && chat.length) { %>
-              <% chat.forEach(m => { %>
-                <div class="<%= (m.senderId == currentUserId) ? 'text-right' : 'text-left' %>">
-                  <span class="inline-block bg-gray-800 px-3 py-1 rounded"><%= m.text %></span>
-                </div>
-              <% }) %>
-            <% } %>
-          </div>
-
+          <div id="chatWindow" class="flex-1 overflow-y-auto space-y-2 pb-2"></div>
           <form id="chatForm" class="mt-2 flex gap-2" onsubmit="return false;">
             <input id="chatInput" class="flex-1 bg-transparent border border-white/6 rounded px-3 py-2 text-sm focus:outline-none" placeholder="Type a message..." />
             <button id="sendChatBtn" class="bg-indigo-600 px-4 py-2 rounded">Send</button>
@@ -139,80 +109,124 @@
   <script src="/js/chess.js"></script>
   <script src="/js/chessboard.js"></script>
 
-
-  
   <script>
-    window.GAME_DATA = {
-      gameId: "<%= gameId %>",
-      currentUserId: "<%= currentUserId %>",
-      player1: <%- JSON.stringify(player1 || {}) %>,
-      player2: <%- JSON.stringify(player2 || {}) %>,
-      initialFen: <%- JSON.stringify(initialFen || null) %>,
-      initialMoves: <%- JSON.stringify(moves || []) %>
-    };
-  
-    const { gameId, currentUserId, player1, player2, initialFen, initialMoves } = window.GAME_DATA;
-    const amWhite = currentUserId == player1._id;
-    const orientation = amWhite ? 'white' : 'black';
-  
     const socket = io();
     const chess = new Chess();
-  
-    if (initialFen && initialFen.length) {
-      try { chess.load(initialFen); } 
-      catch (e) { console.warn('invalid initialFen', e); chess.reset(); }
-    } else {
-      chess.reset();
-    }
-    window.__chess = chess;
-  
-    const clientMoves = Array.from(initialMoves);
-  
-    function appendMoveSAN(san) {
-      clientMoves.push(san);
-      const movesEl = document.getElementById('moves');
-      const idx = clientMoves.length - 1;
-      if (idx % 2 === 0) {
-        const row = document.createElement('div'); row.className = 'move-row';
-        const num = document.createElement('div'); num.className = 'move-number'; num.textContent = Math.floor(idx / 2) + 1 + '.';
-        const wcell = document.createElement('div'); wcell.className = 'move-cell'; wcell.textContent = san;
-        const bcell = document.createElement('div'); bcell.className = 'move-cell'; bcell.textContent = '';
-        row.appendChild(num); row.appendChild(wcell); row.appendChild(bcell);
-        movesEl.appendChild(row);
-      } else {
-        const rows = movesEl.querySelectorAll('.move-row');
-        if (rows.length) rows[rows.length - 1].querySelectorAll('.move-cell')[1].textContent = san;
-      }
-      movesEl.scrollTop = movesEl.scrollHeight;
-    }
-  
-    // Define config BEFORE creating the board
+    const amWhite = String("<%= currentUserId %>") === String("<%= player1._id %>");
+    const orientation = amWhite ? 'white' : 'black';
+    const myUserId = "<%= currentUserId %>";
+    const gameId = "<%= gameId %>";
+    const opponentId = amWhite ? "<%= player2._id %>" : "<%= player1._id %>";
+
+    // If server passed an initial FEN, load it before board creation
+    <% if (initialFen) { %>
+      chess.load("<%= initialFen %>");
+    <% } %>
+
+    // Board config
     const boardConfig = {
       draggable: true,
       position: chess.fen(),
       orientation: orientation,
-      onDragStart: (source, piece) => {
-        const turnColor = chess.turn() === 'w' ? 'w' : 'b';
-        if (turnColor !== (amWhite ? 'w' : 'b')) return false; // only allow move if your turn},
-
+      onDragStart: (square, piece) => {
+        const myColor = amWhite ? 'w' : 'b';
+        // Must be my piece
+        if (!piece || piece[0].toLowerCase() !== myColor) return false;
+        // Must be my turn
+        if (chess.turn() !== myColor) return false;
+        return true;
       },
-      onDrop: (source, target) => {
-        const move = chess.move({ from: source, to: target, promotion: 'q' });
-        if (move === null) return 'snapback';
+      onDrop: (from, to, piece) => {
+        const move = chess.move({ from, to, promotion: 'q' });
+        if (!move) return "snapback";
         board.position(chess.fen());
-        socket.emit('playerMove', { gameId, from: source, to: target, fen: chess.fen() });
+        appendMoveSAN(move.san);
+        socket.emit('playerMove', { gameId: "<%= gameId %>", userId: myUserId, from, to, fen: chess.fen(), san: move.san });
       },
-      onSnapEnd: () => { board.position(chess.fen()); },
-      pieceTheme: function (piece) {
-        return 'https://cdnjs.cloudflare.com/ajax/libs/chessboardjs/1.0.0/img/chesspieces/wikipedia/' + piece.toLowerCase() + '.png';
-}
-
+      onSnapEnd: () => board.position(chess.fen()),
+      pieceTheme: p => `https://cdnjs.cloudflare.com/ajax/libs/chessboardjs/1.0.0/img/chesspieces/wikipedia/${p}.png`
     };
-  
-    // NOW create the board
-    const board = Chessboard('board', boardConfig);
-  </script>
-  
 
+    const board = Chessboard("board", boardConfig);
+
+    // Join game room to receive init and opponent moves
+    socket.emit('joinGame', { gameId, userId: myUserId });
+
+    // Initialize board from server state
+    socket.on('initBoard', ({ fen, turn }) => {
+      if (fen) {
+        chess.load(fen);
+        board.position(fen);
+      }
+      document.getElementById('statusText').textContent = `Turn: ${turn}`;
+    });
+
+    let moveCountPly = 0;
+    function appendMoveSAN(san) {
+      const movesEl = document.getElementById('moves');
+      const rows = movesEl.querySelectorAll('.move-row');
+      moveCountPly += 1;
+      if (moveCountPly % 2 === 1) {
+        const row = document.createElement('div');
+        row.className = 'move-row';
+        const moveNumber = Math.ceil(moveCountPly / 2);
+        row.innerHTML = `<div class="move-number">${moveNumber}.</div><div class="move-cell">${san}</div><div class="move-cell"></div>`;
+        movesEl.appendChild(row);
+      } else {
+        if (rows.length) rows[rows.length - 1].querySelectorAll('.move-cell')[1].textContent = san;
+      }
+      movesEl.scrollTop = movesEl.scrollHeight;
+    }
+
+    // Opponent moves
+    socket.on('opponentMove', d => {
+      if (d && d.fen) chess.load(d.fen);
+      else if (d.from && d.to) chess.move({ from: d.from, to: d.to, promotion: 'q' });
+      board.position(chess.fen());
+      if (d.san) appendMoveSAN(d.san);
+      if (d.turn) document.getElementById('statusText').textContent = `Turn: ${d.turn}`;
+    });
+
+    socket.on('gameEnded', ({ reason, winner }) => {
+      const text = winner ? `Game over (${reason}). Winner: ${winner}` : `Game over (${reason}).`;
+      document.getElementById('statusText').textContent = text;
+    });
+
+    // Flip board
+    document.getElementById("flipBtn").addEventListener("click", () => {
+      const newOrientation = boardConfig.orientation === "white" ? "black" : "white";
+      boardConfig.orientation = newOrientation;
+      board.orientation(newOrientation);
+    });
+
+    // Chat: join chat room for this game and send messages with expected payload
+    socket.emit('joinChat', { gameId });
+    const chatForm = document.getElementById("chatForm");
+    chatForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const input = document.getElementById("chatInput");
+      const txt = input.value.trim();
+      if (!txt) return;
+      socket.emit("chatMessage", { senderId: myUserId, receiverId: opponentId, text: txt, gameId });
+      input.value = "";
+    });
+    socket.on("chatMessage", m => {
+      const div = document.createElement("div");
+      div.className = (String(m.senderId) === String(myUserId)) ? "text-right" : "text-left";
+      div.innerHTML = `<span class="inline-block bg-gray-800 px-3 py-1 rounded">${m.text}</span>`;
+      document.getElementById("chatWindow").appendChild(div);
+    });
+    socket.on("chatHistory", list => {
+      const win = document.getElementById("chatWindow");
+      win.innerHTML = "";
+      (list || []).forEach(m => {
+        const div = document.createElement("div");
+        div.className = (String(m.senderId) === String(myUserId)) ? "text-right" : "text-left";
+        div.innerHTML = `<span class=\"inline-block bg-gray-800 px-3 py-1 rounded\">${m.text}</span>`;
+        win.appendChild(div);
+      });
+      win.scrollTop = win.scrollHeight;
+    });
+  </script>
 </body>
 </html>

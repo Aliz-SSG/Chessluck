@@ -17,18 +17,19 @@ function initSocket(server) {
         });
 
         /* ===== CHAT LOGIC ===== */
-        socket.on("joinChat", ({ currentUserId, friendId }) => {
-            const roomId = [currentUserId, friendId].sort().join("-");
+        socket.on("joinChat", ({ gameId }) => {
+            const roomId = `chat-${gameId}`;
             socket.join(roomId);
-            console.log(`User ${currentUserId} joined chat room: ${roomId}`);
+            console.log(`User joined chat room: ${roomId}`);
         });
 
         socket.on("chatMessage", async (msg) => {
             try {
-                const { senderId, receiverId, text } = msg;
-                const roomId = [senderId, receiverId].sort().join("-");
+                const { senderId, receiverId, text, gameId } = msg;
+                const roomId = `chat-${gameId}`;
 
                 const message = await Message.create({
+                    gameId,
                     sender: senderId,
                     receiver: receiverId,
                     text,
@@ -55,40 +56,86 @@ function initSocket(server) {
                 if (!game) return;
 
                 // Merge deck FENs
-                function mergeDeckFEN(whiteFEN, blackFEN) {
-                    const whiteRows = whiteFEN.split(" ")[0].split("/");
-                    const blackRows = blackFEN.split(" ")[0].split("/");
-
-                    return whiteRows.map((row, i) => {
-                        const wRow = row.split("");
-                        const bRow = blackRows[i] ? blackRows[i].split("") : [];
-                        // If a square is empty in white’s row but filled in black’s, use black’s piece
-                        return wRow.map((c, j) => (c === "1" && bRow[j] && bRow[j] !== "1") ? bRow[j] : c).join("");
-                    }).join("/") + " w KQkq - 0 1";
+                function expandRow(row) {
+                    let out = "";
+                    for (const ch of row) {
+                        if (/\d/.test(ch)) out += "1".repeat(Number(ch)); else out += ch;
+                    }
+                    return out;
+                }
+                function compressRow(row) {
+                    let out = ""; let run = 0;
+                    for (const ch of row) {
+                        if (ch === '1') run++; else { if (run) { out += String(run); run = 0; } out += ch; }
+                    }
+                    if (run) out += String(run);
+                    return out;
+                }
+                function normalizeRankString(rank) {
+                    if (!rank) return "8";
+                    const firstField = String(rank).split(" ")[0];
+                    const row = firstField.includes('/') ? firstField.split('/')[0] : firstField;
+                    const expanded = expandRow(row);
+                    return expanded.slice(0, 8).padEnd(8, '1');
+                }
+                function buildInitialFenFromDecks(whiteBackRank, blackBackRank) {
+                    const w = normalizeRankString(whiteBackRank).toUpperCase();
+                    const b = normalizeRankString(blackBackRank).toLowerCase();
+                    const rows = [
+                        compressRow(b),          // 8: black back rank
+                        'p'.repeat(8),           // 7: black pawns
+                        '8',                     // 6
+                        '8',                     // 5
+                        '8',                     // 4
+                        '8',                     // 3
+                        'P'.repeat(8),           // 2: white pawns
+                        compressRow(w)           // 1: white back rank
+                    ];
+                    return rows.join('/') + ' w KQkq - 0 1';
                 }
 
 
                 if (!game.boardState && game.player1Deck && game.player2Deck) {
-                    game.boardState = mergeDeckFEN(game.player1Deck.fenRank, game.player2Deck.fenRank);
+                    game.boardState = buildInitialFenFromDecks(game.player1Deck.fenRank, game.player2Deck.fenRank);
                     game.turn = "white";
                     game.state = "playing";
                     await game.save();
                 }
 
                 socket.emit("initBoard", { fen: game.boardState, turn: game.turn });
+
+                // Send last 50 chat messages between players for this game context
+                try {
+                    const msgs = await Message.find({ gameId }).sort({ time: 1 }).limit(50);
+                    socket.emit("chatHistory", msgs.map(m => ({
+                        text: m.text,
+                        time: m.time,
+                        senderId: m.sender.toString()
+                    })));
+                } catch (e) {
+                    console.error("❌ Error sending chat history:", e);
+                }
             } catch (err) {
                 console.error("❌ Error joining game:", err);
             }
         });
 
         /* ===== GAMEPLAY ===== */
-        socket.on("playerMove", async ({ gameId, from, to, fen }) => {
+        socket.on("playerMove", async ({ gameId, userId, from, to, fen }) => {
             try {
                 const game = await Game.findById(gameId);
                 if (!game) return;
 
                 const chess = new Chess();
                 if (game.boardState) chess.load(game.boardState);
+
+                // Enforce turn and side
+                const isWhite = userId && game.player1 && String(game.player1) === String(userId);
+                const expectedTurn = chess.turn() === 'w';
+                if ((isWhite && !expectedTurn) || (!isWhite && expectedTurn)) {
+                    socket.emit("invalidMove", { from, to, reason: "not_your_turn" });
+                    return;
+                }
 
                 const move = chess.move({ from, to, promotion: "q" });
                 if (!move) {
@@ -101,11 +148,12 @@ function initSocket(server) {
                 game.moves.push({ from, to, piece: move.piece });
                 await game.save();
 
-                socket.to(gameId).emit("moveMade", {
+                socket.to(gameId).emit("opponentMove", {
                     from,
                     to,
                     fen: chess.fen(),
-                    turn: game.turn
+                    turn: game.turn,
+                    san: move.san
                 });
 
 
@@ -124,7 +172,7 @@ function initSocket(server) {
 
                     game.winner = winner;
                     game.loser = loser;
-                    game.state = "ended";
+                    game.state = "finished";
                     game.endedAt = new Date();
                     game.isDraw = !winner;
                     await game.save();
@@ -146,6 +194,9 @@ function initSocket(server) {
                     }
 
                     io.to(gameId).emit("gameEnded", { reason, winner: winner ? winner.toString() : null });
+
+                    // Cleanup chat for this game
+                    try { await Message.deleteMany({ gameId }); } catch (e) { console.error('❌ Error deleting chat for game', e); }
                 }
             } catch (err) {
                 console.error("❌ Error processing move:", err);
@@ -162,7 +213,7 @@ function initSocket(server) {
 
                 game.winner = winner;
                 game.loser = loser;
-                game.state = "ended";
+                game.state = "finished";
                 game.endedAt = new Date();
                 await game.save();
 

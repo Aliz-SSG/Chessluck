@@ -96,14 +96,39 @@ exports.savingdeck = async (req, res) => {
         res.redirect('/');
     }
 };
-function mergeDeckFEN(whiteFEN, blackFEN) {
-    const whiteRows = whiteFEN.split(" ")[0].split("/");
-    const blackRows = blackFEN.split(" ")[0].split("/");
-    const mergedRows = whiteRows.map((row, i) => {
-        if (blackRows[i]) return row.replace(/8/, blackRows[i]);
-        return row;
-    });
-    return mergedRows.join("/") + " w KQkq - 0 1";
+function expandRow(row) {
+    let out = "";
+    for (const ch of row) { if (/\d/.test(ch)) out += "1".repeat(Number(ch)); else out += ch; }
+    return out;
+}
+function compressRow(row) {
+    let out = ""; let run = 0;
+    for (const ch of row) { if (ch === '1') run++; else { if (run) { out += String(run); run = 0; } out += ch; } }
+    if (run) out += String(run);
+    return out;
+}
+function normalizeRankString(rank) {
+    if (!rank) return "8";
+    const firstField = String(rank).split(" ")[0];
+    const row = firstField.includes('/') ? firstField.split('/')[0] : firstField;
+    const expanded = expandRow(row);
+    return expanded.slice(0, 8).padEnd(8, '1');
+}
+
+function buildInitialFenFromDecks(whiteBackRank, blackBackRank) {
+    const w = normalizeRankString(whiteBackRank).toUpperCase();
+    const b = normalizeRankString(blackBackRank).toLowerCase();
+    const rows = [
+        compressRow(b),          // 8: black back rank
+        'p'.repeat(8),           // 7: black pawns
+        '8',                     // 6
+        '8',                     // 5
+        '8',                     // 4
+        '8',                     // 3
+        'P'.repeat(8),           // 2: white pawns
+        compressRow(w)           // 1: white back rank
+    ];
+    return rows.join('/') + ' w KQkq - 0 1';
 }
 exports.startGame = async (req, res) => {
     try {
@@ -117,7 +142,7 @@ exports.startGame = async (req, res) => {
             return res.redirect(`/game/${gameId}/deck-selection`);
         }
 
-        const initialFen = mergeDeckFEN(game.player1Deck.fenRank, game.player2Deck.fenRank);
+        const initialFen = buildInitialFenFromDecks(game.player1Deck.fenRank, game.player2Deck.fenRank);
         game.boardState = initialFen;
         game.turn = "white";
         game.state = "playing";
