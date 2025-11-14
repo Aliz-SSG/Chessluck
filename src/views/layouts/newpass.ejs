@@ -112,7 +112,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Password toggle visibility
             const toggleButtons = document.querySelectorAll('.toggle-password');
             toggleButtons.forEach(button => {
                 button.addEventListener('click', function() {
@@ -130,7 +129,6 @@
                 });
             });
 
-            // Password strength checker
             const newPasswordInput = document.getElementById('newPassword');
             const confirmPasswordInput = document.getElementById('confirmPassword');
             const strengthBar = document.getElementById('strengthBar');

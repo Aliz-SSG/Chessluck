@@ -5,7 +5,7 @@ exports.ShowFriendsList = async (req, res) => {
         const user = await User.findById(req.user.id).populate("friends", "username email lastActive status");
         const friendsWithStatus = user.friends.map(friend => ({
             ...friend.toObject(),
-            status: isAuthenticatedUser.getUserStatus(friend) // dynamically calculated
+            status: isAuthenticatedUser.getUserStatus(friend)
         }));
 
         res.render('friends', { friends: friendsWithStatus, searchResults: null, currentUser: req.user, });
@@ -63,7 +63,7 @@ exports.RemoveFriend = async (req, res) => {
 };
 exports.SearchUsers = async (req, res) => {
     try {
-        const query = req.query.q; // e.g., /search?q=ches
+        const query = req.query.q;
 
         if (!query || query.trim() === "") {
             req.flash("err_msg", "Please enter a search term");
@@ -72,7 +72,7 @@ exports.SearchUsers = async (req, res) => {
 
         const users = await User.find({
             username: { $regex: query, $options: "i" }
-        }).select("username email"); // only return these fields
+        }).select("username email"); 
 
         res.render("friends", { friends: [], searchResults: users, currentUser: req.user });
     } catch (err) {
@@ -81,4 +81,4 @@ exports.SearchUsers = async (req, res) => {
         res.redirect("/");
     }
 };
-//////////////////////////////////////////
+

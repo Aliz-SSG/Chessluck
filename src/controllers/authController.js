@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Decks = require('../models/decks')
 const crypto = require('crypto');
 const async = require('async');
 const { recoverypassword, passwordchanged } = require('../utils/email');
@@ -6,7 +7,20 @@ const nodemailer = require('nodemailer');
 const passportLocalMongoose = require('passport-local-mongoose')
 
 exports.showLoginForm = (req, res) => res.render('login');
-exports.showDashboard = (req, res) => res.render('dashboard', { user: req.user });
+exports.showDashboard = async (req, res) => {
+    try {
+        const decks = await Decks.find().lean();
+
+
+        res.render('dashboard', {
+            user: req.user,
+            decks
+        });
+    } catch (err) {
+        console.error(err);
+        res.render('dashboard', { user: req.user, decks: [] });
+    }
+};
 exports.showRecoveryForm = (req, res) => res.render('recovery');
 exports.showResetForm = (req, res) => {
     User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } })

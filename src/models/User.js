@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
 userSchema.virtual('winRate').get(function () {
     const totalGames = this.wins + this.losses + this.draws;
     if (totalGames === 0) return 0;
-    return (this.wins / totalGames) * 100;
+    return Math.trunc((this.wins / totalGames) * 100);
 });
 
 userSchema.plugin(passportLocalMongoose);

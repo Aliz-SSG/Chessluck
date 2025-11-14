@@ -5,7 +5,7 @@ const waitlist = require('../models/matchmaking.js');
 const decks = require('../models/decks.js');
 const mongoose = require('mongoose');
 
-let io; // will hold Socket.IO instance
+let io; 
 
 exports.setIO = (socketIO) => {
     io = socketIO;
@@ -119,14 +119,14 @@ function buildInitialFenFromDecks(whiteBackRank, blackBackRank) {
     const w = normalizeRankString(whiteBackRank).toUpperCase();
     const b = normalizeRankString(blackBackRank).toLowerCase();
     const rows = [
-        compressRow(b),          // 8: black back rank
-        'p'.repeat(8),           // 7: black pawns
-        '8',                     // 6
-        '8',                     // 5
-        '8',                     // 4
-        '8',                     // 3
-        'P'.repeat(8),           // 2: white pawns
-        compressRow(w)           // 1: white back rank
+        compressRow(b),          
+        'p'.repeat(8),          
+        '8',                  
+        '8',                    
+        '8',                   
+        '8',                     
+        'P'.repeat(8),          
+        compressRow(w)           
     ];
     return rows.join('/') + ' w KQkq - 0 1';
 }

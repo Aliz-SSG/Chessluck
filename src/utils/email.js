@@ -1,13 +1,13 @@
-
-
-function recoverypassword(token, User, host) {
-    const smtptransport = nodemailer.createTransport({
+const nodemailer = require('nodemailer');
+const smtptransport = nodemailer.createTransport({
         service: 'Gmail',
         auth: {
             user: process.env.Gmail_Email,
             pass: process.env.Gmail_Password,
         }
     });
+function recoverypassword(token, User, host) {
+
 
     const mailOptions = {
         to: User.email,
@@ -73,7 +73,7 @@ function recoverypassword(token, User, host) {
                     <p>Hello,</p>
                     <p>We received a request to reset your password. Click the button below to proceed:</p>
                     <p>
-                        <a href="http://${host}/auth/reset/${token}" class="button">Reset Password</a>
+                        <a href="https://${host}/auth/reset/${token}" class="button">Reset Password</a>
                     </p>
                     <p>If you didn’t request this, please ignore this email—your account is secure.</p>
                     <p>Thanks,<br>ChessLuck Team</p>
@@ -88,15 +88,7 @@ function recoverypassword(token, User, host) {
 
     return smtptransport.sendMail(mailOptions);
 }
-const nodemailer = require('nodemailer');
 
-const smtptransport = nodemailer.createTransport({
-    service: 'Gmail',
-    auth: {
-        user: process.env.Gmail_Email,
-        pass: process.env.Gmail_Password,
-    }
-});
 
 function passwordchanged(User) {
     const mailOptions = {

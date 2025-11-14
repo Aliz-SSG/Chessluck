@@ -198,7 +198,73 @@
                 </div>
               </div>
             </div>
-
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Animated Flex Cards (Tailwind)</title>
+              <script src="https://cdn.tailwindcss.com"></script>
+              <style>
+                /* extra transitions that Tailwind doesn’t cover directly */
+                input:checked + label {
+                  width: 600px;
+                }
+                input:checked + label .description {
+                  opacity: 1 !important;
+                  transform: translateY(0) !important;
+                }
+                .description {
+                  transition: all .3s ease;
+                  transition-delay: .3s;
+                }
+              </style>
+            </head>
+            <div class="w-full h-[450px] flex items-center justify-center"><span class="card w-[400px] h-[400px] bg-gradient-to-r from-blue-800 to-blue-900 cursor-default overflow-hidden rounded-2xl flex items-center justify-center shadow-[0_10px_30px_-5px_rgba(0,0,0,0.8)] text-white text-[18px] text-center">
+              ==>
+              This Week's Available Decks
+              ==>
+            </span>
+              <div class="h-[400px] flex flex-nowrap justify-start">
+                <% 
+                  const gradients = [
+                    "from-red-500 to-yellow-500",
+                    "from-blue-500 to-green-500",
+                    "from-purple-500 to-pink-500",
+                    "from-indigo-500 to-teal-500",
+                    "from-orange-500 to-rose-500"
+                  ];
+                %>
+                <% decks.forEach((deck, index) => { %>
+                  <input type="radio" name="slide" id="c<%= index + 1 %>" class="hidden" <%= index === 0 ? "checked" : "" %>>
+                  <label for="c<%= index + 1 %>" 
+                         class="card relative w-20 mx-2 cursor-pointer overflow-hidden rounded-2xl flex items-end shadow-[0_10px_30px_-5px_rgba(0,0,0,0.8)] transition-[width] duration-[600ms] ease-[cubic-bezier(.28,-0.03,0,.99)]">
+                    
+                    <!-- Background image -->
+                    <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('<%= deck.image %>');"></div>
+                    
+                    <!-- Gradient overlay -->
+                    <div class="absolute inset-0 bg-gradient-to-r <%= gradients[index % gradients.length] %> opacity-70"></div>
+                    
+                    <!-- Content -->
+                    <div class="relative row flex text-white flex-nowrap">
+                      <div class="icon bg-[#223] rounded-full w-12 h-12 m-4 flex justify-center items-center">
+                        <%= index + 1 %>
+                      </div>
+                      <div class="description flex flex-col justify-center h-20 w-[520px] opacity-0 translate-y-8">
+                        <h4 class="uppercase text-[24px] drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)]
+                        "><%= deck.name %></h4>
+                        <p class="text-[gray-400] pt-1"><%= deck.description %></p>
+                      </div>
+                    </div>
+                  </label>
+                <% }) %>
+              </div>
+            </div>
+            
+            
+            </html>
+            
           
             
             <script>

@@ -44,7 +44,7 @@
           </div>
           <div class="flex gap-2 items-center">
             <button id="flipBtn" class="px-3 py-2 rounded bg-transparent border border-white/6 text-sm">Flip</button>
-            <button id="resignBtn" class="px-3 py-2 rounded bg-red-600 text-sm">Resign</button>
+            <!-- <button id="resignBtn" class="px-3 py-2 rounded bg-red-600 text-sm">Resign</button> -->
           </div>
         </div>
 
@@ -52,10 +52,10 @@
 
         <div class="flex justify-between mt-4 items-center">
           <div class="text-sm text-gray-300" id="statusText">Waiting for server...</div>
-          <div class="flex gap-2">
+          <!-- <div class="flex gap-2">
             <button id="offerDrawBtn" class="px-3 py-2 rounded bg-gray-700 text-sm">Offer Draw</button>
             <button id="takeBackBtn" class="px-3 py-2 rounded bg-gray-700 text-sm">Offer Takeback</button>
-          </div>
+          </div> -->
         </div>
       </section>
 
@@ -67,7 +67,7 @@
             <img src="<%= player1.avatar %>" alt="p1" class="w-12 h-12 rounded-md object-cover" />
             <div>
               <div class="font-semibold"><%= player1.username %></div>
-              <div class="text-sm text-gray-400">Rating <%= player1.rating %></div>
+              <div class="text-sm text-gray-400"> <%= player1.rating %></div>
             </div>
           </div>
           <div class="text-sm bg-green-800 px-3 py-1 rounded">White</div>
@@ -78,7 +78,7 @@
             <img src="<%= player2.avatar %>" alt="p2" class="w-12 h-12 rounded-md object-cover" />
             <div>
               <div class="font-semibold"><%= player2.username %></div>
-              <div class="text-sm text-gray-400">Rating <%= player2.rating %></div>
+              <div class="text-sm text-gray-400"> <%= player2.rating %></div>
             </div>
           </div>
           <div class="text-sm bg-blue-800 px-3 py-1 rounded">Black</div>
@@ -190,6 +190,7 @@
     socket.on('gameEnded', ({ reason, winner }) => {
       const text = winner ? `Game over (${reason}). Winner: ${winner}` : `Game over (${reason}).`;
       document.getElementById('statusText').textContent = text;
+      req.flash('gameover_msg')
     });
 
     // Flip board

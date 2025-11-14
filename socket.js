@@ -10,13 +10,11 @@ function initSocket(server) {
     io.on("connection", (socket) => {
         console.log("a user connected:", socket.id);
 
-        /* ===== MATCHMAKING / WAITING ROOM ===== */
         socket.on("registerUser", (userId) => {
             console.log(`🟢 Registered user ${userId} with socket ${socket.id}`);
-            socket.join(userId.toString()); // now io.to(userId) works
+            socket.join(userId.toString());
         });
 
-        /* ===== CHAT LOGIC ===== */
         socket.on("joinChat", ({ gameId }) => {
             const roomId = `chat-${gameId}`;
             socket.join(roomId);
@@ -46,7 +44,6 @@ function initSocket(server) {
             }
         });
 
-        /* ===== GAME ROOM LOGIC ===== */
         socket.on("joinGame", async ({ gameId, userId }) => {
             try {
                 socket.join(gameId);
@@ -55,7 +52,7 @@ function initSocket(server) {
                 const game = await Game.findById(gameId).populate("player1Deck player2Deck");
                 if (!game) return;
 
-                // Merge deck FENs
+
                 function expandRow(row) {
                     let out = "";
                     for (const ch of row) {
@@ -82,14 +79,14 @@ function initSocket(server) {
                     const w = normalizeRankString(whiteBackRank).toUpperCase();
                     const b = normalizeRankString(blackBackRank).toLowerCase();
                     const rows = [
-                        compressRow(b),          // 8: black back rank
-                        'p'.repeat(8),           // 7: black pawns
-                        '8',                     // 6
-                        '8',                     // 5
-                        '8',                     // 4
-                        '8',                     // 3
-                        'P'.repeat(8),           // 2: white pawns
-                        compressRow(w)           // 1: white back rank
+                        compressRow(b),          
+                        'p'.repeat(8),          
+                        '8',                   
+                        '8',                    
+                        '8',                     
+                        '8',                    
+                        'P'.repeat(8),           
+                        compressRow(w)          
                     ];
                     return rows.join('/') + ' w KQkq - 0 1';
                 }
@@ -104,7 +101,6 @@ function initSocket(server) {
 
                 socket.emit("initBoard", { fen: game.boardState, turn: game.turn });
 
-                // Send last 50 chat messages between players for this game context
                 try {
                     const msgs = await Message.find({ gameId }).sort({ time: 1 }).limit(50);
                     socket.emit("chatHistory", msgs.map(m => ({
@@ -120,7 +116,6 @@ function initSocket(server) {
             }
         });
 
-        /* ===== GAMEPLAY ===== */
         socket.on("playerMove", async ({ gameId, userId, from, to, fen }) => {
             try {
                 const game = await Game.findById(gameId);
@@ -129,7 +124,6 @@ function initSocket(server) {
                 const chess = new Chess();
                 if (game.boardState) chess.load(game.boardState);
 
-                // Enforce turn and side
                 const isWhite = userId && game.player1 && String(game.player1) === String(userId);
                 const expectedTurn = chess.turn() === 'w';
                 if ((isWhite && !expectedTurn) || (!isWhite && expectedTurn)) {
@@ -158,7 +152,6 @@ function initSocket(server) {
 
 
 
-                // End game check
                 if (chess.isGameOver()) {
                     let winner = null, loser = null, reason = "draw";
 
@@ -195,7 +188,7 @@ function initSocket(server) {
 
                     io.to(gameId).emit("gameEnded", { reason, winner: winner ? winner.toString() : null });
 
-                    // Cleanup chat for this game
+
                     try { await Message.deleteMany({ gameId }); } catch (e) { console.error('❌ Error deleting chat for game', e); }
                 }
             } catch (err) {
